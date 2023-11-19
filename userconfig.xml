@@ -361,7 +361,7 @@
 	</models>
 	<models>
 		<setting>type</setting>
-		<model>Airbus H160.*</model>
+		<model>Airbus H145.*</model>
 		<value>Helicopter</value>
 		<sim>MSFS</sim>
 		<device>pedals</device>
@@ -370,13 +370,6 @@
 		<setting>type</setting>
 		<model>Airbus H160.*</model>
 		<value>HPGHelicopter</value>
-		<sim>MSFS</sim>
-		<device>pedals</device>
-		</models>
-	<models>
-		<setting>type</setting>
-		<model>Airbus H145.*</model>
-		<value>Helicopter</value>
 		<sim>MSFS</sim>
 		<device>pedals</device>
 		</models>
