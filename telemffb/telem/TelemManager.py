@@ -74,6 +74,7 @@ class TelemManager(QObject, threading.Thread):
         self.timeout_sec = 0.2
         self._ipc_telem_data = {}
         self._simconnect : SimConnectManager= None
+        self.gain_overrides_active = False
 
     def set_simconnect(self, sc : SimConnectManager):
         self._simconnect = sc
@@ -326,6 +327,7 @@ class TelemManager(QObject, threading.Thread):
                         state = json.loads(params.get('configurator_gains', '{}'))
                         G.gain_override_dialog.set_gains_from_state(state)
                         G.current_configurator_gains = state
+                        self.gain_overrides_active = True
                         # dbprint("green", f"current_gain: {state}")
                         # dbprint("yellow", f"vpconf_gain: {G.vpconf_configurator_gains}")
                     else:
@@ -333,11 +335,14 @@ class TelemManager(QObject, threading.Thread):
                         # previous aircraft override gains do not persist.  The last vpconf gain data will either be
                         # the gain at TelemFFB startup, or the last gain set by a pushed vpconf profile
                         G.gain_override_dialog.set_gains_from_object(G.vpconf_configurator_gains)
+                        self.gain_overrides_active = True
                 else:
                     # if the override is NOT enabled. send the last vpconf gain data to ensure
                     # previous aircraft override gains do not persist.  The last vpconf gain data will either be
                     # the gain at TelemFFB startup, or the last gain set by a pushed vpconf profile
-                    G.gain_override_dialog.set_gains_from_object(G.vpconf_configurator_gains)
+                    if self.gain_overrides_active:
+                        G.gain_override_dialog.set_gains_from_object(G.vpconf_configurator_gains)
+                        self.gain_overrides_active = False
 
 
                 logging.info(f"Creating handler for {aircraft_name}: {Class.__module__}.{Class.__name__}")
@@ -399,17 +404,22 @@ class TelemManager(QObject, threading.Thread):
                         state = json.loads(params.get('configurator_gains', '{}'))
                         G.gain_override_dialog.set_gains_from_state(state)
                         G.current_configurator_gains = state
+                        self.gain_overrides_active = True
                         # dbprint("red", f"current_gain: {state}")
                     else:
                         # if the override is enabled but gain has not been set, send the last vpconf gain data to ensure
                         # previous aircraft override gains do not persist.  The last vpconf gain data will either be
                         # the gain at TelemFFB startup, or the last gain set by a pushed vpconf profile
                         G.gain_override_dialog.set_gains_from_object(G.vpconf_configurator_gains)
+                        self.gain_overrides_active = True
                 else:
+                    pass
+                    # We don't want to send the gains here else it will reset to startup gains whenever setting change is made
+
                     # if the override is NOT enabled. send the last vpconf gain data to ensure
                     # previous aircraft override gains do not persist.  The last vpconf gain data will either be
                     # the gain at TelemFFB startup, or the last gain set by a pushed vpconf profile
-                    G.gain_override_dialog.set_gains_from_object(G.vpconf_configurator_gains)
+                    # G.gain_override_dialog.set_gains_from_object(G.vpconf_configurator_gains)
 
                 if "type" in updated_params:
                     # if user changed type or if new aircraft dialog changed type, update aircraft class
