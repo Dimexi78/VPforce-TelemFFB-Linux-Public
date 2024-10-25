@@ -44,7 +44,7 @@ import telemffb.globals as G
 import telemffb.utils as utils
 import telemffb.xmlutils as xmlutils
 from telemffb.config_utils import autoconvert_config
-from telemffb.hw.ffb_rhino import FFBRhino, HapticEffect
+from telemffb.hw.ffb_rhino import DeviceInfo, FFBRhino, HapticEffect
 from telemffb.IPCNetworkThread import IPCNetworkThread
 from telemffb.LogWindow import LogWindow
 from telemffb.MainWindow import MainWindow
@@ -98,6 +98,8 @@ def main():
     QApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling, True) #enable highdpi scaling
     QApplication.setAttribute(QtCore.Qt.AA_UseHighDpiPixmaps, True)  #use highdpi icons
     
+    dev : FFBRhino = None
+
     app = QApplication(sys.argv)
 
     G.args = CmdLineArgs.parse()
@@ -140,9 +142,9 @@ def main():
         master_rb = G.system_settings.get('masterInstance', 1)
         
         try:
-            dev = mapping[master_rb]
-            G.device_usbpid = G.system_settings.get(f'pid{dev.capitalize()}', "2055")
-            G.device_type = dev
+            d = mapping[master_rb]
+            G.device_usbpid = G.system_settings.get(f'pid{d.capitalize()}', "2055")
+            G.device_type = d
         except KeyError:
             G.device_usbpid = 2055
             G.device_type = 'joystick'
@@ -359,15 +361,13 @@ def main():
         pass
 
     devs = FFBRhino.enumerate()
-    dev_dict = {}
     logging.info("Available Rhino Devices:")
     logging.info("-------")
-    for dev in devs:
-
-        logging.info(f"* {dev.vendor_id:04X}:{dev.product_id:04X} - {dev.product_string} - {dev.serial_number}")
-        logging.info(f"* Path:{dev.path}")
+    for devinfo in devs:
+        devinfo : DeviceInfo
+        logging.info(f"* {devinfo.vendor_id:04X}:{devinfo.product_id:04X} - {devinfo.product_string} - {devinfo.serial_number}")
+        logging.info(f"* Path:{devinfo.path}")
         logging.info(f"*")
-        dev_dict[dev.product_id] = dev.product_string
     logging.info("-------")
 
     try:
@@ -382,7 +382,7 @@ def main():
             devver = re.sub(r'\D', '', dev_firmware_version)
             if devver < minver:
                 QMessageBox.warning(None, "Outdated Firmware", f"This version of TelemFFB requires Rhino Firmware version {min_firmware_version} or later.\n\nThe current version installed is {dev_firmware_version}\n\n\n Please update to avoid errors!")
-        G.device_ident = dev_dict.get(vid_pid[1], 0000).replace("Rhino FFB ", "").strip()
+        G.device_ident = dev.info.product_string.replace("Rhino FFB ", "").strip()
         # logging.info(f"!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! >{G.device_ident}<")
     except Exception as e:
         logging.exception("Exception")
@@ -402,9 +402,7 @@ def main():
     logger = logging.getLogger()
     logger.setLevel(log_levels.get(ll, logging.DEBUG))
     logging.info(f"Logging level set to:{logging.getLevelName(logger.getEffectiveLevel())}")
-    
-    
-    
+
 
     G.telem_manager = TelemManager()
     G.telem_manager.start()

@@ -761,7 +761,7 @@ class FFBRhino(QObject):
         if report_id == HID_REPORT_ID_INPUT:
             report: FFBReport_Input = self.get_input()
 
-            btns: int = report.Button0_31 | (report.Button32_47 << 32) | (report.Button48_63 << 48)
+            btns: int = report.buttons
 
             prev = self._button_state
             self._button_state = btns
