@@ -51,7 +51,10 @@ import telemffb.globals as G
 import telemffb.winpaths as winpaths
 import telemffb.xmlutils as xmlutils
 
-def dbprint(color, msg):
+def dbprint(color, msg, instance=None):
+    if instance is not None:
+        if instance != G.device_type:
+            return
     reset = '\033[0m'
     match color:
         case "red":
@@ -1648,8 +1651,9 @@ def launch_vpconf(serial=None):
 
 def get_version():
     if G.release_version:
-        version = "vX.X.X"
-        return version
+        return G.release_version_str
+    if G.dev_build:
+        return G.dev_build_str
 
     ver = "UNKNOWN"
     try:

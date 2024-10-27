@@ -188,15 +188,9 @@ def main():
     sys.path.insert(0, '')
     # sys.path.append('/simconnect')
 
-    #################
-    ################
-    ###  Setting _release flag to true will disable all auto-updating and 'WiP' downloads server version checking
-    ###  Set the version number to version tag that will be pushed to master repository branch
-    G.release_version = False  # Todo: Validate release flag!
-
     version = utils.get_version()
 
-    min_firmware_version = 'v1.0.16'
+    min_firmware_version = 'v1.0.17'
 
     dev_serial = None
 
@@ -442,7 +436,7 @@ def main():
             G.main_window.show()
 
     autoconvert_config(G.main_window, utils.get_resource_path('config.ini'), utils.get_legacy_override_file())
-    if not G.release_version:
+    if not G.release_version and not G.dev_build:
         utils.FetchLatestVersion(G.main_window.update_version_result,
                                 lambda error_message: logging.error("Error in thread: %s", error_message))
 

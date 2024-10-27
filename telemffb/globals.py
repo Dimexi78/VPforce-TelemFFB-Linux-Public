@@ -60,3 +60,6 @@ sim_listeners : 'SimListenerManager' = None
 log_window : 'LogWindow' = None
 
 release_version : bool = False
+release_version_str: str = "Vx.x.x"
+dev_build : bool = False
+dev_build_str: str = "DEV_BUILD "
