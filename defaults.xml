@@ -1582,6 +1582,7 @@
 		<XPLANE>true</XPLANE>
 		<IL2>true</IL2>
 		<joystick>true</joystick>
+		<value>false</value>
 		<datatype>bool</datatype>
 	</defaults>
 	<defaults>

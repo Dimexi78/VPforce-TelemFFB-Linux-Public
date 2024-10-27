@@ -138,6 +138,10 @@ class Aircraft(AircraftBase):
         :param new_data: New telemetry data
         :type new_data: dict
         """
+        input_data = HapticEffect.device.get_input()
+
+        cpx, cpy = input_data.CP_XY()
+        telem_data['CP_XY'] = f"{cpx}, {cpy}"
 
         try:
             j = json.loads(telem_data["MechInfo"])

@@ -96,6 +96,7 @@ class AircraftBase(object):
     gforce_max_gs = 5.0  # G limit where the effect maxes out at strength defined in gforce_effect_max_intensity
 
     new_gforce_effect_enable = False
+    new_gforce_effect_center_deadzone = 0
     new_gforce_min_gs = 1.1  # G's where the effect starts playing
     new_gforce_max_gs = 5.0  # G limit where the effect maxes out at strength defined in gforce_effect_max_intensity
     new_gforce_effect_deflection_factor = 1.0
@@ -488,7 +489,6 @@ class AircraftBase(object):
         if not self.is_joystick() or not self.new_gforce_effect_enable:
             effects.dispose("new_gforce")
             return
-
         if sum(telem_data.get("WeightOnWheels")):
             effects.dispose("new_gforce")
             return
@@ -500,7 +500,6 @@ class AircraftBase(object):
         gmin_neg = self.new_gforce_min_gs_neg
         gmax = self.new_gforce_max_gs
         gmax_neg = self.new_gforce_max_gs_neg
-
 
         if self._sim_is("DCS") or self._sim_is("IL2"):
             gs: float = telem_data.get("ACCs")[1]
@@ -524,44 +523,45 @@ class AircraftBase(object):
 
         input_data = HapticEffect.device.get_input()
         x, y = input_data.axisXY()
+        _, spring_y_center = input_data.CP_XY()
         derivative_hz = 5  # derivative lpf filter -3db Hz
         derivative_k = 0.1  # derivative gain value, or damping ratio
 
         dGs = getattr(self, "_dGs", None)
         if not dGs: dGs = self._dGs = utils.Derivative(derivative_hz)
         dGs.lpf.cutoff_freq_hz = derivative_hz
-        if gs > 1 and y > 0:
+
+        if gs > 1 and y > (spring_y_center + self.new_gforce_effect_center_deadzone):
             direction = 180
             g_factor = utils.scale_clamp(gs, (gmin, gmax), (0,1))
 
             g_deriv = - dGs.update(g_factor) * derivative_k
             g_factor += g_deriv
-
-            deflection_factor = utils.scale_clamp(abs(y), (0, self.new_gforce_effect_deflection_factor), (0, 1))
-        elif gs < 1 and y < 0 and self.new_gforce_enable_neg_gs:
+            y_maxpoint = spring_y_center + (1 - spring_y_center) * self.new_gforce_effect_deflection_factor
+            # utils.dbprint("green", f"y: {y}, syc:{spring_y_center}, y_max: {y_maxpoint}")
+            deflection_factor = abs(utils.scale(y, (spring_y_center, y_maxpoint), (0, 1)))
+        elif gs < 1 and y < (spring_y_center - self.new_gforce_effect_center_deadzone) and self.new_gforce_enable_neg_gs:
             direction = 0
             g_factor = utils.scale_clamp(gs, (gmin_neg, gmax_neg), (0,1))
 
             g_deriv = - dGs.update(g_factor) * derivative_k
             g_factor += g_deriv
-
-            deflection_factor = utils.scale_clamp(abs(y), (0, abs(self.new_gforce_effect_deflection_factor_neg)), (0, 1))
+            y_maxpoint = abs(spring_y_center + (-1 - spring_y_center) * self.new_gforce_effect_deflection_factor_neg)
+            # utils.dbprint("red", f"y_pos: {y}, spr_cent:{spring_y_center}, y_max: {y_maxpoint}")
+            deflection_factor = abs(utils.scale(y, (spring_y_center, y_maxpoint), (0, -1)))
         else:
             effects["new_gforce"].stop()
             return
 
         telem_data['g_factor_raw'] = g_factor
-
         telem_data['g_deflection'] = deflection_factor
-
+        # utils.dbprint("blue", f"g_deflection_factor: {deflection_factor}", "joystick")
         telem_data['g_y'] = y
 
         g_factor = g_factor * deflection_factor
 
         telem_data['g_factor'] = g_factor
-
         effects["new_gforce"].constant(g_factor, direction).start()
-
         logging.debug(f"G's = {gs} | gfactor = {g_factor}")
 
     def _gforce_effect(self, telem_data):
