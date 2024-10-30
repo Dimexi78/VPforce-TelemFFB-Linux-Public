@@ -1414,7 +1414,7 @@ class MainWindow(QMainWindow):
                     items += f"{k}: {v:.3f}\n"
                 else:
                     if isinstance(v, list):
-                        v = "[" + ", ".join([f"{x:.3f}" if not isinstance(x, str) else x for x in v]) + "]"
+                        v = "[" + ", ".join([f"{x:.3f}" if isinstance(x, float) else str(x) if x is not None else "None" for x in v]) + "]"
                     items += f"{k}: {v}\n"
 
             active_effects = ""
