@@ -424,8 +424,40 @@ class FFBReport_Input(BaseStructure):
     def CP_XY(self) -> tuple[float, float]:
         """
         Returns the center point offset as a tuple of two floats in the range [-1.0 .. 1.0]
+        If spring coefficient = 0, returns None
         """
-        return (self.CP_offsetX/4096.0, self.CP_offsetY/4096.0)
+        cpX = self.CP_offsetX/4096.0 if self.CP_offsetX <= 4096.0 else None
+        cpY = self.CP_offsetY/4096.0 if self.CP_offsetY <= 4096.0 else None
+        
+        return (cpX, cpY)
+
+    def CP_scaled_axisXY(self) -> tuple[float, float]:
+        """
+        Returns scaled axis x/y values in the range [-1.0 .. 1.0]  using the current CP_offset as a center reference
+        Output is scaled 0 to +/-1 in any direction from spring center.
+        """
+        X, Y = self.axisXY()
+        cpX, cpY = self.CP_XY()
+        # Scale X based on cpX as the zero reference
+        if cpX is None:
+            # Spring coefficient = 0, return 0
+            scaled_x = 0
+        elif X >= cpX:
+            scaled_x = (X - cpX) / (1 - cpX) if cpX < 1 else (X - cpX)  # Map [cpX, 1] to [0, 1], avoid div/0
+        else:
+            scaled_x = (X - cpX) / (cpX + 1) if cpX > -1 else (X - cpX)  # Map [-1, cpX] to [-1, 0], avoid div/0
+
+        # Scale Y based on cpY as the zero reference
+        if cpY is None:
+            # Spring coefficient = 0, return 0
+            scaled_y = 0
+        elif Y >= cpY:
+            scaled_y = (Y - cpY) / (1 - cpY) if cpY < 1 else (Y - cpY)  # Map [cpY, 1] to [0, 1], avoid div/0
+        else:
+            scaled_y = (Y - cpY) / (cpY + 1) if cpY > -1 else (Y - cpY)  # Map [-1, cpY] to [-1, 0], avoid div/0
+
+        return (scaled_x, scaled_y)
+
 
 class FFBReport_PIDStatus_Input(BaseStructure):
     _pack_ = 1
