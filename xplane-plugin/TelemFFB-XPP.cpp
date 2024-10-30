@@ -37,6 +37,21 @@ std::mutex logMutex;
 
 std::ofstream debugLogFile;
 
+
+struct DataRefSubscription {
+    XPLMDataRef dataRef;
+    std::string key;         // Key in telemetryData
+    std::string type;        // Data type (int, float, double, etc.)
+    int precision;           // Precision for floats
+    float conversionFactor;  // Conversion factor (default 1.0)
+};
+
+
+
+
+std::vector<DataRefSubscription> subscribedDataRefs;
+
+
 /* Data refs we will record. */
 
 char gAircraftName[250];
@@ -54,6 +69,7 @@ float gActiveGearXNode;
 float gActiveGearYNode;
 float gActiveGearZNode;
 
+bool simPaused = false;
 
 static XPLMDataRef gAircraftDescr;
 static XPLMDataRef gPaused = XPLMFindDataRef("sim/time/paused");                                        // boolean � int � v6.60+
@@ -127,6 +143,10 @@ static XPLMDataRef gGearZNode = XPLMFindDataRef("sim/aircraft/parts/acf_gear_zno
 
 
 
+
+
+
+
 std::map<std::string, std::string> telemetryData;
 std::map<std::string, float> axisDataMap = { {"jx", 0.0}, {"jy", 0.0}, {"px", 0.0}, {"cy", 0.0} };
 
@@ -144,14 +164,7 @@ const float radps_2_rpm = 9.5493f; // convert rad/sec to rev/min
 const float fps_2_g = 0.031081f; // convert feet per second to g
 const float no_convert = 1.0; // dummy value for no conversion factor
 
-void InitializeDebugLog() {
-    if (DEBUG) {
-        debugLogFile.open("TelemFFB_DebugLog.txt", std::ios::out);
-    }
-}
 
-// Function to get a timestamp string
-// Function to get a timestamp string with millisecond resolution
 std::string GetTimestamp() {
     SYSTEMTIME systemTime;
     GetSystemTime(&systemTime);
@@ -186,6 +199,44 @@ void DebugLog(const std::string& message) {
         debugLogFile.flush();
     }
 }
+
+void InitializeDebugLog() {
+    if (DEBUG) {
+        debugLogFile.open("TelemFFB_DebugLog.txt", std::ios::out);
+    }
+}
+
+void RegisterDataRef(const std::string& datarefPath, const std::string& key, const std::string& type, int precision = 3, float conversionFactor = 1.0f) {
+    // Find the dataref
+    XPLMDataRef dataRef = XPLMFindDataRef(datarefPath.c_str());
+    if (dataRef != nullptr) {
+        // Store the dataref in the vector with precision and conversion factor
+        DataRefSubscription sub = { dataRef, key, type, precision, conversionFactor };
+        subscribedDataRefs.push_back(sub);
+        DebugLog("Subscribed to DataRef: " + datarefPath + " as " + type + " with key " + key + ", precision " + std::to_string(precision) + ", conversion factor " + std::to_string(conversionFactor));
+    }
+    else {
+        DebugLog("Failed to subscribe to DataRef: " + datarefPath);
+    }
+}
+
+
+
+// Function to get a timestamp string
+// Function to get a timestamp string with millisecond resolution
+
+
+void InitializeAW109DataRefs() {
+    RegisterDataRef("aw109/controls/aileron_trim_req", "gAW109_aileron_trim_req", "float");
+    RegisterDataRef("aw109/controls/elevator_trim_req", "gAW109_elevator_trim_req", "float");
+    RegisterDataRef("aw109/controls/rudder_trim_req", "gAW109_rudder_trim_req", "float");
+    RegisterDataRef("aw109/autopilot/cyc_force_trim_release_pressed", "gAW109_cyc_force_trim_release_pressed", "int");
+    RegisterDataRef("aw109/servo/aileron_trim_rate", "gAW109_aileron_trim_rate", "float");
+    // Continue for other datarefs...
+}
+
+
+
 
 std::string FloatToString(float value, int precision, float conversionFactor = 1.0) {
     value *= conversionFactor; // Apply the conversion factor
@@ -294,10 +345,13 @@ void GetACDetails(const std::string& aircraftName) {
     telemetryData["GearYNode"] = FloatArrayToString(gGearYNode, no_convert, gActiveNumGear);
     telemetryData["GearZNode"] = FloatArrayToString(gGearZNode, no_convert, gActiveNumGear);
 
+    //InitializeAW109DataRefs();
+
 }
 
 void CollectTelemetryData()
 {
+
     // Get the aircraft name
     XPLMGetDatab(gAircraftDescr, gAircraftName, 0, 250);
 
@@ -313,10 +367,32 @@ void CollectTelemetryData()
         std::strcpy(gPrevAircraftName, gAircraftName);
     }
 
+    for (const auto& sub : subscribedDataRefs) {
+        if (sub.type == "int") {
+            int value = XPLMGetDatai(sub.dataRef);
+            telemetryData[sub.key] = std::to_string(value);  // Store in telemetryData map
+        }
+        else if (sub.type == "float") {
+            float value = XPLMGetDataf(sub.dataRef) * sub.conversionFactor;  // Apply conversion factor
+            telemetryData[sub.key] = FloatToString(value, sub.precision);    // Use custom precision
+        }
+        else if (sub.type == "double") {
+            double value = XPLMGetDatad(sub.dataRef) * sub.conversionFactor;  // Apply conversion factor
+            telemetryData[sub.key] = FloatToString(static_cast<float>(value), sub.precision);  // Store in telemetryData map
+        }
+        else {
+            DebugLog("Unsupported dataref type: " + sub.type);
+        }
+    }
+
     telemetryData["src"] = "XPLANE";
     telemetryData["N"] = gAircraftName;
     telemetryData["STOP"] = std::to_string(XPLMGetDatai(gPaused));
-    telemetryData["SimPaused"] = std::to_string(XPLMGetDatai(gPaused));
+
+    simPaused = XPLMGetDatai(gPaused) == 1;
+
+    telemetryData["SimPaused"] = std::to_string(simPaused);  // Store as string for telemetry
+
     telemetryData["SimOnGround"] = std::to_string(XPLMGetDatai(gOnGround));
 
     telemetryData["T"] = FloatToString(XPLMGetElapsedTime(), 3);
@@ -366,6 +442,9 @@ void CollectTelemetryData()
     telemetryData["cOvrd"] = std::to_string(overrideCollective);
     telemetryData["jOvrd"] = std::to_string(overrideJoystick);
     telemetryData["pOvrd"] = std::to_string(overridePedals);
+
+
+
 }
 
 
@@ -439,7 +518,32 @@ void ProcessReceivedData(const std::string& dataType, const std::string& payload
             }
         }
     }
+    else if (dataType == "SUBSCRIBE") {
+        // Example payload format: "dataref=sim/flightmodel/position/latitude,type=float,tag=Latitude,precision=6,conversion=0.51444"
+        std::istringstream iss(payload);
+        std::string key, value;
+        std::map<std::string, std::string> parameters;
+
+        // Parse key-value pairs (dataref, type, tag, precision, conversion)
+        while (std::getline(iss, key, '=')) {
+            std::getline(iss, value, ',');
+            parameters[key] = value;
+        }
+
+        // Extract mandatory parameters
+        std::string datarefStr = parameters["dataref"];
+        std::string typeStr = parameters["type"];
+        std::string tagStr = parameters["tag"];
+
+        // Extract optional parameters with default values
+        int precision = parameters.find("precision") != parameters.end() ? std::stoi(parameters["precision"]) : 3;
+        float conversionFactor = parameters.find("conversion") != parameters.end() ? std::stof(parameters["conversion"]) : 1.0f;
+
+        // Register the dataref with the provided or default precision and conversion factor
+        RegisterDataRef(datarefStr, tagStr, typeStr, precision, conversionFactor);
+    }
     else {
+        DebugLog("Unknown Packet: " + payload);
         // Unknown or unsupported data type
         // Handle accordingly or log a warning
     }
@@ -634,7 +738,9 @@ float MyFlightLoopCallback(float inElapsedSinceLastCall, float inElapsedTimeSinc
     CollectTelemetryData();
 
     // Format and send telemetry data
-    FormatAndSendTelemetryData();
+    if (!simPaused) {
+        FormatAndSendTelemetryData();
+    }
 
 
 

@@ -75,6 +75,7 @@ class TelemManager(QObject, threading.Thread):
         self._ipc_telem_data = {}
         self._simconnect : SimConnectManager= None
         self.gain_overrides_active = False
+        self.stop_state = False
 
     def set_simconnect(self, sc : SimConnectManager):
         self._simconnect = sc
