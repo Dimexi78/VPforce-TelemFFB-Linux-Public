@@ -68,6 +68,8 @@ HID_REPORT_ID_BLOCK_FREE = 111
 HID_REPORT_ID_DEVICE_CONTROL = 112
 HID_REPORT_ID_DEVICE_GAIN = 113
 HID_REPORT_ID_SET_CUSTOM_FORCE_OUTPUT_DATA = 114
+HID_REPORT_ID_SET_DEADZONE = 115
+
 HID_REPORT_ID_PID_STATE_REPORT = 2
 HID_REPORT_ID_CREATE_EFFECT = 5
 HID_REPORT_ID_PID_BLOCK_LOAD = 6
@@ -170,6 +172,14 @@ class FFBReport_SetEffect(BaseStructure):
                 ("startDelay", ctypes.c_uint16)
                ]
     _defaults_ = {"reportId": HID_REPORT_ID_SET_EFFECT, "gain":4096}
+
+
+class FFBReport_SetDeadzone(BaseStructure):
+    _pack_ = 1
+    _fields_ = [
+            ("reportId", ctypes.c_uint8),
+            ("deadzone", ctypes.c_uint16),
+        ]
 
 
 class FFBReport_EffectOperation(BaseStructure):
