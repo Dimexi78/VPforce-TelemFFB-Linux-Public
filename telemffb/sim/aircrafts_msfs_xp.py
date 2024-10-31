@@ -611,8 +611,10 @@ class Aircraft(AircraftBase):
         # update: reworking this based on spring center point offset and this below is not physically correct anyways
         #_aoa_term = sin(( _aoa - telem_data["ElevDefl"]) * rad) * self.aoa_gain * _elev_dyn_pressure * _slip_gain
         #telem_data["_aoa_term"] = _aoa_term
-
+        input_data = HapticEffect.device.get_input()
+        dx,dy = input_data.CP_scaled_axisXY()
         _G_term = (self.g_force_gain * telem_data["AccBody"][1])
+        _G_term = _G_term * abs(dy)  # scale g forces based on stick deflection from spring center
         telem_data["_G_term"] = _G_term
 
         #       hpf_pitch_acc = hpf.get("xacc", 3).update(data["RelWndY"]) # test stuff
