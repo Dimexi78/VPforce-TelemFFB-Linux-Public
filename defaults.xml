@@ -420,6 +420,56 @@
 	</defaults>
 	<defaults>
 		<Grouping>Basic</Grouping>
+		<order>141</order>
+		<name>collective_ft_ovd_enabled</name>
+		<info>Enable hardware force trim for collective axis</info>
+		<displayname>Collective Force Trim</displayname>
+		<DCS>true</DCS>
+		<MSFS>true</MSFS>
+		<XPLANE>true</XPLANE>
+		<collective>true</collective>
+		<datatype>bool</datatype>
+	</defaults>
+	<defaults><Grouping>Basic</Grouping><prereq>collective_ft_ovd_enabled</prereq><DCS>true</DCS><MSFS>true</MSFS><XPLANE>true</XPLANE><collective>true</collective><validvalues>0,100</validvalues><value>1.0</value><datatype>float</datatype>
+		<order>141.2</order>
+		<name>collective_ft_ovd_spring_gain</name>
+		<info>Spring Gain</info>
+		<displayname>Spring Gain</displayname>
+	</defaults>
+	<defaults><Grouping>Basic</Grouping><prereq>collective_ft_ovd_enabled</prereq><DCS>true</DCS><MSFS>true</MSFS><XPLANE>true</XPLANE><collective>true</collective><validvalues>0,100</validvalues><value>0.15</value><datatype>float</datatype>
+		<order>141.3</order>
+		<name>collective_ft_ovd_tr_damper</name>
+		<info>Trim Release Damper Gain</info>
+		<displayname>Trim Release Damper Gain</displayname>
+	</defaults>
+	<defaults><Grouping>Basic</Grouping><prereq>collective_ft_ovd_enabled</prereq><DCS>true</DCS><MSFS>true</MSFS><XPLANE>true</XPLANE><collective>true</collective><value>0</value><datatype>button</datatype>
+		<order>141.4</order>
+		<name>collective_ft_ovd_release</name>
+		<info>Trim Release Button</info>
+		<displayname>Trim Release Button</displayname>
+	</defaults>
+	<defaults><Grouping>Basic</Grouping><prereq>collective_ft_ovd_enabled</prereq><displayname>Trim Reset Button (full down)</displayname><DCS>true</DCS><MSFS>true</MSFS><XPLANE>true</XPLANE><collective>true</collective><value>0</value><datatype>button</datatype>
+		<order>141.5</order>
+		<name>collective_ft_ovd_reset</name>
+		<info>Trim Reset Button (full down)</info>
+	</defaults>
+	<defaults><Grouping>Basic</Grouping><prereq>collective_ft_ovd_enabled</prereq><DCS>true</DCS><MSFS>true</MSFS><XPLANE>true</XPLANE><collective>true</collective><value>0</value><datatype>button</datatype>
+		<order>141.6</order>
+		<name>collective_ft_ovd_trim_down</name>
+		<displayname>&lt;html&gt;&lt;body&gt;&lt;table cellpadding="0" cellspacing="0" border="0"&gt;&lt;tr&gt;&lt;td style="vertical-align: middle;"&gt;Trim&lt;/td&gt;&lt;td&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp;&lt;/td&gt;&lt;td style="font-size: 24px; vertical-align: middle; font-weight: bold;"&gt;&#x21E7;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/body&gt;&lt;/html&gt;</displayname>
+	</defaults>
+	<defaults><Grouping>Basic</Grouping><prereq>collective_ft_ovd_enabled</prereq><DCS>true</DCS><MSFS>true</MSFS><XPLANE>true</XPLANE><collective>true</collective><value>0</value><datatype>button</datatype>
+		<order>141.7</order>
+		<name>collective_ft_ovd_trim_up</name>
+		<displayname>&lt;html&gt;&lt;body&gt;&lt;table cellpadding="0" cellspacing="0" border="0"&gt;&lt;tr&gt;&lt;td style="vertical-align: middle;"&gt;Trim&lt;/td&gt;&lt;td&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp;&lt;/td&gt;&lt;td style="font-size: 24px; vertical-align: middle; font-weight: bold;"&gt;&#x21E9;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/body&gt;&lt;/html&gt;</displayname>
+	</defaults>
+	<defaults><Grouping>Basic</Grouping><prereq>collective_ft_ovd_enabled</prereq><info>Affects rate at which trim will move when button held</info><DCS>true</DCS><MSFS>true</MSFS><XPLANE>true</XPLANE><collective>true</collective><sliderfactor>1</sliderfactor><validvalues>0,1000</validvalues><value>200</value><datatype>d_int</datatype>
+		<order>141.8</order>
+		<name>collective_ft_ovd_trim_rate</name>
+		<displayname>Trim Slew Rate</displayname>
+	</defaults>
+	<defaults>
+		<Grouping>Basic</Grouping>
 		<order>150</order>
 		<name>trim_workaround</name>
 		<info>Apply artificial trim movement - only for aircraft that do not support native FFB trim&lt;b&gt;&lt;b&gt;(AV8B, Mig-19)</info>
@@ -4269,6 +4319,34 @@
 		<sim>any</sim>
 		<device>any</device>
 		</classdefaults>
+	<classdefaults>
+		<name>collective_ft_ovd_enabled</name>
+		<type>AllSettings</type>
+		<value>false</value>
+		<sim>anu</sim>
+		<device>collective</device>
+	</classdefaults>
+	<classdefaults>
+		<name>collective_ft_ovd_enabled</name>
+		<type>Helicopter</type>
+		<value>false</value>
+		<sim>MSFS</sim>
+		<device>collective</device>
+	</classdefaults>
+	<classdefaults>
+		<name>collective_ft_ovd_enabled</name>
+		<type>Helicopter</type>
+		<value>false</value>
+		<sim>XPLANE</sim>
+		<device>collective</device>
+	</classdefaults>
+	<classdefaults>
+		<name>collective_ft_ovd_enabled</name>
+		<type>Helicopter</type>
+		<value>false</value>
+		<sim>DCS</sim>
+		<device>collective</device>
+	</classdefaults>
 	<classdefaults>
 		<name>critical_aoa_max</name>
 		<type>JetAircraft</type>

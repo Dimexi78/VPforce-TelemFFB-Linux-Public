@@ -127,7 +127,7 @@ class Aircraft(AircraftBase):
         input_data = HapticEffect.device.get_input()
         self.last_device_x, self.last_device_y = input_data.axisXY()
         self.last_pedal_x = self.last_device_x
-        self.last_collective_y = self.last_device_y
+        self.last_collective_y = None
 
 
     @overrides(AircraftBase)
@@ -246,7 +246,6 @@ class Aircraft(AircraftBase):
         """
         if not self.is_collective(): return
 
-        self.spring = effects["collective_ap_spring"].spring()
         # self.damper = effects["collective_damper"].damper()
         if not self.force_disable_collective_gain:
             self.spring_y.negativeCoefficient = self.spring_y.positiveCoefficient = 4096
@@ -255,19 +254,20 @@ class Aircraft(AircraftBase):
             self.spring.start(override=True)
             return
 
-        if not self.collective_init:
-            input_data = HapticEffect.device.get_input()
-            phys_x, phys_y = input_data.axisXY()
+        input_data = HapticEffect.device.get_input()
+        phys_x, phys_y = input_data.axisXY()
 
-            self.spring_y.negativeCoefficient = self.spring_y.positiveCoefficient = self.collective_spring_coeff_y
+        if not self.collective_init:
+            self.spring = effects["collective_ap_spring"].spring()
+
+            self.spring_y.negativeCoefficient = self.spring_y.positiveCoefficient = 4096
             if max(telem_data.get("WeightOnWheels")):
                 self.cpO_y = 4096
+            elif self.last_collective_y is None:
+                # Air start or new aircraft.  Use current physical position as init point
+                self.cpO_y = round(4096 * phys_y)
             else:
                 self.cpO_y = round(4096 * self.last_collective_y)
-
-
-            self.spring_y.positiveCoefficient = self.spring_y.negativeCoefficient = round(
-                4096 * utils.clamp(self.collective_ap_spring_gain, 0, 1))
 
             self.spring_y.cpOffset = self.cpO_y
 
@@ -281,17 +281,21 @@ class Aircraft(AircraftBase):
                 logging.info("Collective Initialized")
             else:
                 return
+        self.last_collective_y = phys_y
 
-        input_data = HapticEffect.device.get_input()
-        phys_x, phys_y = input_data.axisXY()
-        self.cpO_y = round(4096 * utils.clamp(phys_y, -1, 1))
-        self.spring_y.cpOffset = self.cpO_y
+        if self.collective_ft_ovd_enabled:
+            self.spring.name = "collective_ft"
+            self.collective_force_trim_override(telem_data, self.spring)
+        else:
+            self.spring.name = "collective_ap_spring"
+            self.cpO_y = round(4096 * utils.clamp(phys_y, -1, 1))
+            self.spring_y.cpOffset = self.cpO_y
 
-        # self.damper.damper(coef_y=int(4096 * self.collective_dampening_gain)).start()
-        self.spring_y.negativeCoefficient = self.spring_y.positiveCoefficient = 0
+            # self.damper.damper(coef_y=int(4096 * self.collective_dampening_gain)).start()
+            self.spring_y.negativeCoefficient = self.spring_y.positiveCoefficient = 0
 
-        self.spring.setCondition(self.spring_y)
-        self.spring.start(override=True)
+            self.spring.setCondition(self.spring_y)
+            self.spring.start(override=True)
 
 
 

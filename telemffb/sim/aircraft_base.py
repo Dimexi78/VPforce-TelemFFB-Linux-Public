@@ -235,6 +235,20 @@ class AircraftBase(object):
     overspeed_shake_intensity = 0.2
     heli_engine_rumble_intensity = 0.12
 
+    collective_ft_ovd_enabled: bool = False
+    collective_ft_ovd_release: int = 0
+    collective_ft_ovd_spring_gain: float = 0.5
+    collective_ft_ovd_tr_damper: float = 0.05
+    collective_ft_ovd_reset: int = 0
+    collective_ft_ovd_trim_rate: int = 200
+    collective_ft_init: bool = False
+    collective_ft_ovd_trim_down = 0
+    collective_ft_ovd_trim_up = 0
+    collective_ft_ovd_cp0_y = 4096
+
+    last_device_x = None
+    last_device_y = None
+
     smoother = utils.Smoother()
     _ipc_telem = {}
     stepper_dict = {}
@@ -1617,6 +1631,85 @@ class AircraftBase(object):
         # self.damper = effects["pedal_damper"].damper(coef_x=damper_coeff).start()
 
         spring.setCondition(self.spring_x)
+        spring.start(override=True)
+
+    def collective_force_trim_override(self, telem_data, spring):
+        '''
+        Generic effect enabling spring force and hardware trim for collective axis.
+        '''
+
+        if not self.is_collective(): return
+        if not self.collective_ft_ovd_enabled:
+            # If feature disabled, ensure spring is stopped and abort
+            effects['collective_ft'].stop()
+            return
+
+        # spring = effects['collective_ft'].spring()
+
+        dt = perftracker.get_time_delta('collective_ft_perf')
+        self.telem_data['_coll_ft_dt'] = dt
+
+        wow = sum(telem_data.get("WeightOnWheels", [1]))
+
+        input_data = HapticEffect.device.get_input()
+        _, y = input_data.axisXY()
+        current_buttons = input_data.getPressedButtons()
+
+        # decide what to do depending on which button is pressed
+        if self.collective_ft_ovd_release and self.collective_ft_ovd_release in current_buttons:
+            # use spring force as dampening.  Configured damper value applied as spring gain.  cpO will follow stick
+            # as it is moved while spring force is enabled.
+            # return from method so default spring gains do not get applied at the end of the method
+            gain = int (self.collective_ft_ovd_tr_damper * 4096)
+
+            self.spring_y.positiveCoefficient = gain
+            self.spring_y.negativeCoefficient = gain
+
+            self.collective_ft_ovd_cp0_y = round(y * 4096)
+            self.spring_y.cpOffset = self.collective_ft_ovd_cp0_y
+            spring.setCondition(self.spring_y)
+            spring.start(override=True)
+            return
+
+        elif self.collective_ft_ovd_reset and self.collective_ft_ovd_reset in current_buttons:
+            # if trim reset button pressed, set offsets back to 0
+            # print("TRIM RESET")
+            self.spring_y.cpOffset = self.collective_ft_ovd_cp0_y = 4096
+            spring.setCondition(self.spring_y)
+
+        # calculate step size based on configured rate and delta time
+        trim_step_size = self.collective_ft_ovd_trim_rate * dt
+
+        self.telem_data['_coll_ft_step'] = trim_step_size
+
+        # evaluate UP or DOWN and then LEFT or RIGHT trims.  Allows movement on both axes simultaneously but not
+        # accidental confliction of trying to move both directions on a single axis due to bad hat bindings
+        if self.collective_ft_ovd_trim_down and self.collective_ft_ovd_trim_down in current_buttons:
+            # shift offset based on previously calculated step size.  Ensure value does not exceed limits
+            # print("TRIM DOWN")
+            if self.collective_ft_ovd_cp0_y + trim_step_size > 4096:
+                self.collective_ft_ovd_cp0_y = 4096
+            else:
+                self.collective_ft_ovd_cp0_y += trim_step_size
+            self.spring_y.cpOffset = round(self.collective_ft_ovd_cp0_y)
+        elif self.collective_ft_ovd_trim_up and self.collective_ft_ovd_trim_up in current_buttons:
+            # shift offset based on previously calculated step size.  Ensure value does not exceed limits
+            # print("TRIM UP")
+            if self.collective_ft_ovd_cp0_y - trim_step_size < -4096:
+                self.collective_ft_ovd_cp0_y = -4096
+            else:
+                self.collective_ft_ovd_cp0_y -= trim_step_size
+            self.spring_y.cpOffset = round(self.collective_ft_ovd_cp0_y)
+
+
+
+        self.telem_data['_coll_ft_trim_pos'] = round(self.collective_ft_ovd_cp0_y)
+
+        # If trim release is not pressed, set spring gain based on user setting and start spring override
+        self.spring_y.positiveCoefficient = self.spring_y.negativeCoefficient = int(self.collective_ft_ovd_spring_gain * 4096)
+
+        spring.setCondition(self.spring_y)
+        # ensure spring is started with override = true
         spring.start(override=True)
 
     def on_event(self):
