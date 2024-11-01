@@ -1,7 +1,24 @@
 This is not an exhaustive change log (see github for that).  This file only outlines the new/improved/changed functionality for new commits
+############################################
+##  October 31, 2024
+############################################
+## General
+- ***Soft require firmware v 1.0.17***
+  - MSFS Dynamic forces effect and "new" g-force effect (all sims) are now using features introduced in the 1.0.17 firmware
+- Fixes
+  - Fix crash on startup when device PID is wrong or device is disconnected
+  - Fix device gains read during startup being pushed to device on every settings change
+## All Sims
+- Enhanced "new g-force" effect
+  - Effect now uses the spring center, rather than true center to determine applied gain.  Works better in aircraft with displaced centers and helicopters.  Also accounts for offset center due to trim
+- New generic "Collective Force Trim"
+  - Available in helicopters for MSFS/X-Plane/DCS
+  - Trim release/reset and hat trim bindings available
+## MSFS
+- Improved dynamic forces effect.  Eliminated issue that was producing oscillations due to g-force component of the effect
 
 ############################################
-##  October 6,, 2024
+##  October 6, 2024
 ############################################
 ## General
 - Updated many effects to work properly with pedals axis.  "Direction" was hard coded for y axis which does not exist for pedals.
