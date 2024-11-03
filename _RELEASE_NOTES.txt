@@ -1,4 +1,12 @@
 This is not an exhaustive change log (see github for that).  This file only outlines the new/improved/changed functionality for new commits
+
+############################################
+##  November 3, 2024
+############################################
+## General
+- Fix device PID/Ident check when selecting configurator profiles for child devices from the master instance window
+## MSFS
+- Fix collective initialization in HPGHelicopter type
 ############################################
 ##  October 31, 2024
 ############################################
