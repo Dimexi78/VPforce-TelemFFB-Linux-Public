@@ -2115,6 +2115,9 @@ class HPGHelicopter(Helicopter):
             self.spring_y.negativeCoefficient = self.spring_y.positiveCoefficient = self.collective_spring_coeff_y
             if telem_data.get("SimOnGround", 1):
                 self.cpO_y = 4096
+            elif self.last_collective_y is None:
+                # Air start or new aircraft.  Use current physical position as init point
+                self.cpO_y = round(4096 * phys_y)
             else:
                 self.cpO_y = round(4096 * self.last_collective_y)
 
@@ -2124,8 +2127,8 @@ class HPGHelicopter(Helicopter):
 
             self._spring_handle.setCondition(self.spring_y)
             # self.damper.damper(coef_y=4096).start()
-            self._spring_handle.start()
-            if self.last_collective_y - 0.2 < phys_y < self.last_collective_y + 0.2:
+            self._spring_handle.start(override=True)
+            if self.cpO_y/4096 - 0.1 < phys_y < self.cpO_y/4096 + 0.1:
                 # dont start sending position until physical stick has centered
                 self.collective_init = 1
                 logging.info("Collective Initialized")
@@ -2144,7 +2147,7 @@ class HPGHelicopter(Helicopter):
                 self.spring_y.negativeCoefficient = self.spring_y.positiveCoefficient = int(4096 * self.trim_release_spring_gain)
 
                 self._spring_handle.setCondition(self.spring_y)
-                self._spring_handle.start()
+                self._spring_handle.start(override=True)
 
                 if self.enable_custom_y_axis:
                     y_var = self.custom_y_axis
@@ -2171,7 +2174,7 @@ class HPGHelicopter(Helicopter):
                 self.spring_y.negativeCoefficient = self.spring_y.positiveCoefficient = round(self.collective_spring_coeff_y)
 
                 self._spring_handle.setCondition(self.spring_y)
-                self._spring_handle.start()
+                self._spring_handle.start(override=True)
 
         else:
             if force_trim_pressed:
@@ -2184,7 +2187,7 @@ class HPGHelicopter(Helicopter):
                 self.spring_y.negativeCoefficient = self.spring_y.positiveCoefficient = int(4096 * self.trim_release_spring_gain)
 
                 self._spring_handle.setCondition(self.spring_y)
-                self._spring_handle.start()
+                self._spring_handle.start(override=True)
 
                 if self.enable_custom_y_axis:
                     y_var = self.custom_y_axis
@@ -2210,7 +2213,7 @@ class HPGHelicopter(Helicopter):
                 # self.damper.damper(coef_y=0).start()
 
                 self._spring_handle.setCondition(self.spring_y)
-                self._spring_handle.start()
+                self._spring_handle.start(override=True)
 
     def _update_vrs_effect(self, telem_data):
         vrs_onset = telem_data.get("hpgVRSDatum", 0)
