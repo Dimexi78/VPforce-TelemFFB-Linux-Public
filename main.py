@@ -363,6 +363,11 @@ def main():
         logging.info(f"* {devinfo.vendor_id:04X}:{devinfo.product_id:04X} - {devinfo.product_string} - {devinfo.serial_number}")
         logging.info(f"* Path:{devinfo.path}")
         logging.info(f"*")
+        if G.master_instance:
+            pid = int(f"{devinfo.product_id:04X}")
+            G.instance_dev_dict[pid] = {}
+            G.instance_dev_dict[pid]["ident"] = devinfo.product_string.replace("Rhino FFB ", "").strip()
+            G.instance_dev_dict[pid]["serial"] = devinfo.serial_number
     logging.info("-------")
 
     try:

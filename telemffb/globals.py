@@ -48,6 +48,7 @@ device_usbvidpid : str = None # "FFFF:2055"
 device_ident : str = None #Joystick, Pedals, etc.. as set in configurator
 
 launched_instances : Dict[str, 'ChildPopen'] = {}
+instance_dev_dict : dict = {}
 master_instance : bool = False
 ipc_instance : 'IPCNetworkThread' = None
 child_instance : bool = None

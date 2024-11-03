@@ -1787,9 +1787,13 @@ def validate_vpconf_profile(file, pid=None, dev_type=None, silent=False, window=
             QMessageBox.warning(window, "Wrong Device", msg)
         else:
             logging.error(msg)
-    if cfg_device_name != G.device_ident:
+    if G.master_instance:
+        dev_ident = G.instance_dev_dict[pid].get("ident")
+    else:
+        dev_ident = G.device_ident
+    if cfg_device_name != dev_ident:
         passed = False
-        msg = f"The VPforce Configurator file {file} contains a device ident >{cfg_device_name}< that is different from the device currently connected >{G.device_ident}<  This will cause USB to disconnect."
+        msg = f"The VPforce Configurator file {file} contains a device ident >{cfg_device_name}< that is different from the device currently connected >{dev_ident}<  This will cause USB to disconnect."
         if not silent:
             QMessageBox.warning(window, "Wrong Device", msg)
         else:
