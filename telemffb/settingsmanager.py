@@ -1275,6 +1275,10 @@ class UserModelDialog(QDialog):
     <p><b style="font-family: Courier">Name.*</b> will match anything starting with '<b>Name</b>'</p>
     <p><b style="font-family: Courier">^Name$</b> will match only the exact '<b>Name</b>'</p>
     <p><b style="font-family: Courier">(The )?Name.*</b> matches starting with '<b>Name</b>' or '<b>The Name</b>'</p>
+    
+    <p><b>**Note** if this is a new livery for an existing aircraft, is recommended to clone from the default profile</b></p>
+    <p><b>for that aircraft if one exists.  This is mandatory for aircraftad with special implementations like 'HPGHelicopter'</b></p>
+     
 """
         label1 = QLabel(lb1_txt)
         # label1 = QLabel("TelemFFB uses regex to match aircraft names")
