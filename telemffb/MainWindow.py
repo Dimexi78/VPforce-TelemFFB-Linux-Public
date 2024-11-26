@@ -55,7 +55,6 @@ from telemffb.settingsmanager import UserModelDialog
 from telemffb.sim.aircraft_base import effects
 from telemffb.telem.SimTelemListener import SimTelemListener
 from telemffb.SystemSettingsDialog import SystemSettingsDialog
-from telemffb.TeleplotSetupDialog import TeleplotSetupDialog
 from telemffb.utils import exit_application, overrides
 
 class MainWindow(QMainWindow):
@@ -1111,6 +1110,7 @@ class MainWindow(QMainWindow):
 
     @overrides(QWidget)
     def closeEvent(self, event):
+        print("Close Event")
         # Perform cleanup before closing the application
         if G.child_instance:
             self.hide()
@@ -1138,37 +1138,81 @@ class MainWindow(QMainWindow):
         return False
 
     def load_main_window_geometry(self):
-        window_data = G.system_settings.get("WindowData")
-        # print(window_data)
+        settings = G.system_settings
+        window_data = settings.get("WindowData")
+        
         if window_data is not None:
-            window_data_dict = json.loads(window_data)
+            try:
+                window_data_dict = json.loads(window_data)
+                
+                # Restore geometry and state if available
+                if 'geometry' in window_data_dict:
+                    geometry = QtCore.QByteArray.fromBase64(window_data_dict['geometry'].encode())
+                    if not self.restoreGeometry(geometry):
+                        self.set_default_geometry()
+
+                if 'state' in window_data_dict:
+                    state = QtCore.QByteArray.fromBase64(window_data_dict['state'].encode())
+                    self.restoreState(state)
+                
+                # Load tab settings
+                if G.system_settings.get('saveLastTab', True):
+                    tab = window_data_dict.get('Tab', 0)
+                    self.tab_sizes = window_data_dict.get('TabSizes', self.default_tab_sizes)
+                    self.tab_widget.setCurrentIndex(tab)
+                    self.switch_window_view(tab)
+                    
+                    h = self.tab_sizes[str(tab)]['height']
+                    w = self.tab_sizes[str(tab)]['width']
+                    self.resize(w, h)
+
+                # Validate window position is on screen
+                if not self.is_valid_geometry(self.x(), self.y()):
+                    self.set_default_geometry()
+                    
+            except Exception as e:
+                logging.warning(f"Error restoring window geometry: {e}")
+                self.set_default_geometry()
         else:
-            window_data_dict = {}
-        # print(window_data_dict)
-        load_geometry = G.system_settings.get('saveWindow', True)
-        load_tab = G.system_settings.get('saveLastTab', True)
+            self.set_default_geometry()
 
-        if load_tab:
-            tab = window_data_dict.get('Tab', 0)
-            self.tab_sizes = window_data_dict.get('TabSizes', self.default_tab_sizes)
-            self.tab_widget.setCurrentIndex(tab)
-            self.switch_window_view(tab)
-            h = self.tab_sizes[str(tab)]['height']
-            w = self.tab_sizes[str(tab)]['width']
-            self.resize(w, h)
+    def save_main_window_geometry(self):
+        # Save both geometry and window state
+        settings = G.system_settings
+        device_type = G.device_type
 
-        if load_geometry:
-            win_pos = window_data_dict.get('WindowPosition', {})
-            win_x = win_pos.get('x', 100)
-            win_y = win_pos.get('y', 100)
+        # Convert geometry and state to base64 strings for storage
+        geometry = self.saveGeometry().toBase64().data().decode()
+        state = self.saveState().toBase64().data().decode()
+        
+        # Save current tab info
+        cur_index = self.tab_widget.currentIndex()
+        self.tab_sizes[str(cur_index)]['width'] = self.width()
+        self.tab_sizes[str(cur_index)]['height'] = self.height()
 
-            # Validate the saved position
-            if not self.is_valid_geometry(win_x, win_y):
-                # If the position is invalid, move to the default position
-                logging.info(f'Saved window geometry is invalid, resetting window position to default.')
-                win_x, win_y = 100, 100
+        window_dict = {
+            'geometry': geometry,
+            'state': state,
+            'Tab': cur_index,
+            'TabSizes': self.tab_sizes
+        }
 
-            self.move(win_x, win_y)
+        settings.setValue(f"{device_type}/WindowData", json.dumps(window_dict))
+
+    def set_default_geometry(self):
+        """Set default window position based on device type"""
+        match G.device_type:
+            case 'joystick':
+                x_pos = 150
+                y_pos = 130
+            case 'pedals':
+                x_pos = 100
+                y_pos = 100
+            case 'collective':
+                x_pos = 50
+                y_pos = 70
+                
+        self.setGeometry(x_pos, y_pos, 530, 700)
 
     def force_sim_aircraft(self):
         G.settings_mgr.current_sim = self.test_sim.currentText()
@@ -1611,3 +1655,6 @@ class MainWindow(QMainWindow):
                     return True
 
         return False
+
+
+

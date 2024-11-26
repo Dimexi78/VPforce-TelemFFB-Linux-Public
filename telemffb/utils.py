@@ -1879,25 +1879,6 @@ def format_dict(data, prefix=""):
     return output
 
 
-def save_main_window_geometry():
-    # Capture the mai n window's geometry
-    device_type = G.device_type
-    cur_index = G.main_window.tab_widget.currentIndex()
-    G.main_window.tab_sizes[str(cur_index)]['width'] = G.main_window.width()
-    G.main_window.tab_sizes[str(cur_index)]['height'] = G.main_window.height()
-
-    window_dict = {
-        'WindowPosition': {
-            'x': G.main_window.pos().x(),
-            'y': G.main_window.pos().y(),
-        },
-        'Tab': G.main_window.tab_widget.currentIndex(),
-        'TabSizes': G.main_window.tab_sizes
-    }
-
-    G.system_settings.setValue(f"{device_type}/WindowData", json.dumps(window_dict))
-
-
 def get_install_path():
     """ return path where executable or main script is installed"""
     if getattr(sys, 'frozen', False):
@@ -1977,7 +1958,7 @@ def threaded(daemon=False):
 
 def exit_application():
     # Perform any cleanup or save operations here
-    save_main_window_geometry()
+    G.main_window.save_main_window_geometry()
     QCoreApplication.instance().quit()
 
 def get_legacy_override_file():
