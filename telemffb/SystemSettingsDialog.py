@@ -48,6 +48,7 @@ class SystemSettingsDialog(QDialog, Ui_SystemDialog):
         self.master_button_group.addButton(self.rb_master_c, id=3)
 
         # Add tooltips
+        self.validateDCS.setToolTip('If enabled, TelemFFB will automatically install the necessary export script and update the DCS export.lua file')
         self.validateIL2.setToolTip('If enabled, TelemFFB will automatically set up the required configuration in IL2 to support telemetry export')
         self.pathIL2.setToolTip('The root path where IL-2 Strumovik is installed')
         self.lab_pathIL2.setToolTip('The root path where IL-2 Strumovik is installed')
@@ -60,6 +61,7 @@ class SystemSettingsDialog(QDialog, Ui_SystemDialog):
 
         # Connect signals to slots
         self.cb_logPrune.stateChanged.connect(self.toggle_log_prune_widgets)
+        self.enableDCS.stateChanged.connect(self.toggle_dcs_widgets)
         self.enableIL2.stateChanged.connect(self.toggle_il2_widgets)
         self.enableXPLANE.stateChanged.connect(self.toggle_xplane_widgets)
         self.browseXPLANE.clicked.connect(self.select_xplane_directory)
@@ -79,6 +81,7 @@ class SystemSettingsDialog(QDialog, Ui_SystemDialog):
 
         # Set initial state
         self.toggle_log_prune_widgets()
+        self.toggle_dcs_widgets()
         self.toggle_il2_widgets()
         self.toggle_xplane_widgets()
         self.toggle_al_widgets()
@@ -238,6 +241,11 @@ class SystemSettingsDialog(QDialog, Ui_SystemDialog):
         self.pathXPLANE.setEnabled(xplane_enabled)
         self.browseXPLANE.setEnabled(xplane_enabled)
 
+    def toggle_dcs_widgets(self):
+        # show/hide DCS related widgets based on checkbox state
+        dcs_enabled = self.enableDCS.isChecked()
+        self.validateDCS.setEnabled(dcs_enabled
+                                    )
     def toggle_il2_widgets(self):
         # Show/hide IL-2 related widgets based on checkbox state
         il2_enabled = self.enableIL2.isChecked()
@@ -350,6 +358,7 @@ class SystemSettingsDialog(QDialog, Ui_SystemDialog):
 
         global_settings_dict = {
             "enableDCS": self.enableDCS.isChecked(),
+            "validateDCS": self.validateDCS.isChecked(),
             "enableMSFS": self.enableMSFS.isChecked(),
             "enableXPLANE": self.enableXPLANE.isChecked(),
             "validateXPLANE": self.validateXPLANE.isChecked(),
@@ -478,6 +487,9 @@ class SystemSettingsDialog(QDialog, Ui_SystemDialog):
         self.cb_closeToTray.setChecked(settings_dict.get('closeToTray', False))
 
         self.enableDCS.setChecked(settings_dict.get('enableDCS', False))
+        self.toggle_dcs_widgets()
+
+        self.validateDCS.setChecked(settings_dict.get('validateDCS', True))
 
         self.enableMSFS.setChecked(settings_dict.get('enableMSFS', False))
 

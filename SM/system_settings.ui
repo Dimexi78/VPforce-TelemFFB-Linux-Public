@@ -30,6 +30,7 @@
           <widget class="QLabel" name="labelSystem">
            <property name="font">
             <font>
+             <weight>75</weight>
              <bold>true</bold>
              <underline>true</underline>
             </font>
@@ -192,6 +193,7 @@
         <widget class="Line" name="line_3">
          <property name="font">
           <font>
+           <weight>50</weight>
            <bold>false</bold>
           </font>
          </property>
@@ -211,6 +213,7 @@
             <widget class="QLabel" name="labelLaunch">
              <property name="font">
               <font>
+               <weight>75</weight>
                <bold>true</bold>
                <underline>true</underline>
               </font>
@@ -224,6 +227,7 @@
             <widget class="QCheckBox" name="cb_al_enable">
              <property name="font">
               <font>
+               <weight>50</weight>
                <bold>false</bold>
                <underline>false</underline>
               </font>
@@ -542,6 +546,7 @@ Headless:</string>
           <widget class="QLabel" name="labelSystem_2">
            <property name="font">
             <font>
+             <weight>75</weight>
              <bold>true</bold>
              <underline>true</underline>
             </font>
@@ -594,6 +599,7 @@ Headless:</string>
       <widget class="Line" name="line">
        <property name="font">
         <font>
+         <weight>50</weight>
          <bold>false</bold>
         </font>
        </property>
@@ -612,6 +618,7 @@ Headless:</string>
       <widget class="QLabel" name="labelSim">
        <property name="font">
         <font>
+         <weight>75</weight>
          <bold>true</bold>
          <underline>true</underline>
         </font>
@@ -626,6 +633,19 @@ Headless:</string>
        <property name="verticalSpacing">
         <number>6</number>
        </property>
+       <item row="2" column="0">
+        <widget class="LabeledToggle" name="enableMSFS">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="text">
+          <string>Enable MSFS 2020 Support</string>
+         </property>
+        </widget>
+       </item>
        <item row="0" column="0">
         <widget class="LabeledToggle" name="enableDCS">
          <property name="sizePolicy">
@@ -639,27 +659,14 @@ Headless:</string>
          </property>
         </widget>
        </item>
-       <item row="1" column="0">
-        <widget class="LabeledToggle" name="enableMSFS">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="text">
-          <string>Enable MSFS 2020 Support</string>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="0">
+       <item row="3" column="0">
         <widget class="LabeledToggle" name="enableXPLANE">
          <property name="text">
           <string>Enable X-Plane Support</string>
          </property>
         </widget>
        </item>
-       <item row="3" column="0">
+       <item row="4" column="0">
         <layout class="QHBoxLayout" name="horizontalLayout">
          <item>
           <spacer name="horizontalSpacer_14">
@@ -686,7 +693,53 @@ Headless:</string>
          </item>
         </layout>
        </item>
-       <item row="4" column="0">
+       <item row="9" column="0">
+        <layout class="QHBoxLayout" name="horizontalLayout_8">
+         <item>
+          <spacer name="horizontalSpacer_18">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeType">
+            <enum>QSizePolicy::Fixed</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>13</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <widget class="QLabel" name="lab_portIL2">
+           <property name="text">
+            <string>IL-2 Telemetry Port:</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLineEdit" name="portIL2"/>
+         </item>
+         <item>
+          <spacer name="horizontalSpacer">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeType">
+            <enum>QSizePolicy::Fixed</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>279</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+        </layout>
+       </item>
+       <item row="5" column="0">
         <layout class="QHBoxLayout" name="horizontalLayout_2">
          <item>
           <spacer name="horizontalSpacer_15">
@@ -735,14 +788,14 @@ Headless:</string>
          </item>
         </layout>
        </item>
-       <item row="5" column="0">
+       <item row="6" column="0">
         <widget class="LabeledToggle" name="enableIL2">
          <property name="text">
           <string>Enable IL-2 Sturmovik Support</string>
          </property>
         </widget>
        </item>
-       <item row="6" column="0">
+       <item row="7" column="0">
         <layout class="QHBoxLayout" name="horizontalLayout_6">
          <item>
           <spacer name="horizontalSpacer_16">
@@ -769,7 +822,7 @@ Headless:</string>
          </item>
         </layout>
        </item>
-       <item row="7" column="0">
+       <item row="8" column="0">
         <layout class="QHBoxLayout" name="horizontalLayout_7">
          <item>
           <spacer name="horizontalSpacer_17">
@@ -818,10 +871,10 @@ Headless:</string>
          </item>
         </layout>
        </item>
-       <item row="8" column="0">
-        <layout class="QHBoxLayout" name="horizontalLayout_8">
+       <item row="1" column="0">
+        <layout class="QHBoxLayout" name="horizontalLayout_12">
          <item>
-          <spacer name="horizontalSpacer_18">
+          <spacer name="horizontalSpacer_19">
            <property name="orientation">
             <enum>Qt::Horizontal</enum>
            </property>
@@ -837,30 +890,11 @@ Headless:</string>
           </spacer>
          </item>
          <item>
-          <widget class="QLabel" name="lab_portIL2">
+          <widget class="LabeledToggle" name="validateDCS">
            <property name="text">
-            <string>IL-2 Telemetry Port:</string>
+            <string>Auto DCS setup</string>
            </property>
           </widget>
-         </item>
-         <item>
-          <widget class="QLineEdit" name="portIL2"/>
-         </item>
-         <item>
-          <spacer name="horizontalSpacer">
-           <property name="orientation">
-            <enum>Qt::Horizontal</enum>
-           </property>
-           <property name="sizeType">
-            <enum>QSizePolicy::Fixed</enum>
-           </property>
-           <property name="sizeHint" stdset="0">
-            <size>
-             <width>279</width>
-             <height>20</height>
-            </size>
-           </property>
-          </spacer>
          </item>
         </layout>
        </item>
@@ -870,6 +904,7 @@ Headless:</string>
       <widget class="Line" name="line_2">
        <property name="font">
         <font>
+         <weight>50</weight>
          <bold>false</bold>
         </font>
        </property>
@@ -888,6 +923,7 @@ Headless:</string>
       <widget class="QLabel" name="labelOther">
        <property name="font">
         <font>
+         <weight>75</weight>
          <bold>true</bold>
          <underline>true</underline>
         </font>
