@@ -68,7 +68,9 @@ class MainWindow(QMainWindow):
 
         self.error_state = False # True='error' key found in telem_data, False=clean telem_data
         self.error_clean_counter = 0 # counter to use as hysteresis for clearing error condition - not always 'error' from child instance on every loop
-        self.timed_out = True
+        self.telemetry_timed_out = True
+
+        self.last_telemetry_refresh = utils.millis()
 
         self.show_simvars = False
 
@@ -1110,7 +1112,6 @@ class MainWindow(QMainWindow):
 
     @overrides(QWidget)
     def closeEvent(self, event):
-        print("Close Event")
         # Perform cleanup before closing the application
         if G.child_instance:
             self.hide()
@@ -1438,9 +1439,12 @@ class MainWindow(QMainWindow):
         if not self.error_state:
             # Only set icon to pause if error condition is not present when pausing
             self.update_sim_indicators(G.telem_manager.getTelemValue('src'), paused=True)
-        self.timed_out = True
+        self.telemetry_timed_out = True
 
     def on_update_telemetry(self, datadict: dict):
+        if utils.millis() - self.last_telemetry_refresh < 50:
+            return
+        self.last_telemetry_refresh = utils.millis()
 
         data = OrderedDict(sorted(datadict.items()))  # Alphabetize telemetry data
         keys = data.keys()
@@ -1558,11 +1562,11 @@ class MainWindow(QMainWindow):
             error_cond = data.get('error', None)
 
             if error_cond is None:  # no 'error' key in telemetry
-                if self.timed_out or self.error_state:  # only set status to run if previously timed out or error status was true
+                if self.telemetry_timed_out or self.error_state:  # only set status to run if previously timed out or error status was true
                     if not self.error_clean_counter:  # avoid flapping due to ipc_telem not populating on every frame due to thread timing between instances
                         self.update_sim_indicators(data.get('src'), paused=False)
                         self.error_state = False
-                        self.timed_out = False
+                        self.telemetry_timed_out = False
                     else:
                         self.error_clean_counter -= 1  # decrement the counter so that it will reach 0 once error is *truly* cleared
             elif error_cond is not None:
