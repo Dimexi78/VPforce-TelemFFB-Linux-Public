@@ -102,6 +102,7 @@ def main():
     dev : FFBRhino = None
 
     app = QApplication(sys.argv)
+    app.setStyle('Fusion')  # Set Fusion style
 
     G.args = CmdLineArgs.parse()
 
