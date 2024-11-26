@@ -167,7 +167,7 @@ class EffectTranslator:
         "buffeting": ["AoA\\Stall Buffeting", "buffeting_intensity"],
         "bombs": ["Bomb Release", "weapon_release_intensity"],
         "canopymovement": ["Canopy Motion", "canopy_motion_intensity"],
-        "collective_ap_spring": ["Collective Spring Override", "collective_ap_spring_gain"],
+        "collective_ap_spring": ["Collective Spring", "collective_ap_spring_gain"],
         "collective_damper": ["Collective Dampening Force", "collective_dampening_gain"],
         "collective_ft": ["Collective Force Trim", "collective_ft_ovd_spring_gain"],
         "cp_ovd_spring": ["Co-Pilot/RIO Override Spring", "cp_spr_override_spring_gain"],

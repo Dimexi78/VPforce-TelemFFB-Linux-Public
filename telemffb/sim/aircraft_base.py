@@ -1682,7 +1682,7 @@ class AircraftBase(object):
             # use spring force as dampening.  Configured damper value applied as spring gain.  cpO will follow stick
             # as it is moved while spring force is enabled.
             # return from method so default spring gains do not get applied at the end of the method
-            gain = int (self.collective_ft_ovd_tr_damper * 4096)
+            gain = int(self.collective_ft_ovd_tr_damper * 4096)
 
             self.spring_y.positiveCoefficient = gain
             self.spring_y.negativeCoefficient = gain

@@ -1465,8 +1465,8 @@ class Helicopter(Aircraft):
                     # self.cpO_x = round(self.cyclic_center[0] * 4096)
                     # self.cpO_y = round(self.cyclic_center[1] * 4096)
 
-                    self.spring_x.cpOffset = self.cpO_x
-                    self.spring_y.cpOffset = self.cpO_y
+                    self.spring_x.cpOffset = round(self.cpO_x)
+                    self.spring_y.cpOffset = round(self.cpO_y)
                     if self._sim_is_msfs():
                         self._simconnect.send_event_to_msfs("ROTOR_TRIM_RESET", 0)
 
@@ -2111,40 +2111,41 @@ class HPGHelicopter(Helicopter):
         telem_data['phys_y'] = phys_y
         if not self.collective_init:
 
+            self.spring_y.positiveCoefficient = self.spring_y.negativeCoefficient = round(4096 * utils.clamp(self.collective_ap_spring_gain, 0, 1))
 
-            self.spring_y.negativeCoefficient = self.spring_y.positiveCoefficient = self.collective_spring_coeff_y
             if telem_data.get("SimOnGround", 1):
+                # Sim is on ground - set init point to full down
                 self.cpO_y = 4096
             elif self.last_collective_y is None:
                 # Air start or new aircraft.  Use current physical position as init point
                 self.cpO_y = round(4096 * phys_y)
             else:
+                # set init point to last point before pause
                 self.cpO_y = round(4096 * self.last_collective_y)
-
-            self.spring_y.positiveCoefficient = self.spring_y.negativeCoefficient = round(4096 * utils.clamp(self.collective_ap_spring_gain, 0, 1))
 
             self.spring_y.cpOffset = self.cpO_y
 
             self._spring_handle.setCondition(self.spring_y)
-            # self.damper.damper(coef_y=4096).start()
+
             self._spring_handle.start(override=True)
+
             if self.cpO_y/4096 - 0.1 < phys_y < self.cpO_y/4096 + 0.1:
+                # Check if phys y position is within %10 of init point
                 # dont start sending position until physical stick has centered
                 self.collective_init = 1
                 logging.info("Collective Initialized")
             else:
                 return
+        # Only reach here if collective position is initialized
         self.last_collective_y = phys_y
 
         if afcs_mode == 0:
             if force_trim_pressed:
 
                 self.cpO_y = round(4096*utils.clamp(phys_y, -1, 1))
-                # print(self.cpO_y)
                 self.spring_y.cpOffset = self.cpO_y
 
-                # self.damper.damper(coef_y=0).start()
-                self.spring_y.negativeCoefficient = self.spring_y.positiveCoefficient = int(4096 * self.trim_release_spring_gain)
+                self.spring_y.negativeCoefficient = self.spring_y.positiveCoefficient = round(4096 * self.trim_release_spring_gain)
 
                 self._spring_handle.setCondition(self.spring_y)
                 self._spring_handle.start(override=True)
@@ -2171,7 +2172,7 @@ class HPGHelicopter(Helicopter):
                 self.spring_y.cpOffset = self.cpO_y
 
                 # self.damper.damper(coef_y=0).start()
-                self.spring_y.negativeCoefficient = self.spring_y.positiveCoefficient = round(self.collective_spring_coeff_y)
+                self.spring_y.positiveCoefficient = self.spring_y.negativeCoefficient = round(4096 * utils.clamp(self.collective_ap_spring_gain, 0, 1))
 
                 self._spring_handle.setCondition(self.spring_y)
                 self._spring_handle.start(override=True)
@@ -2184,7 +2185,7 @@ class HPGHelicopter(Helicopter):
                 self.spring_y.cpOffset = self.cpO_y
 
                 # self.damper.damper(coef_y=0).start()
-                self.spring_y.negativeCoefficient = self.spring_y.positiveCoefficient = int(4096 * self.trim_release_spring_gain)
+                self.spring_y.negativeCoefficient = self.spring_y.positiveCoefficient = round(4096 * self.trim_release_spring_gain)
 
                 self._spring_handle.setCondition(self.spring_y)
                 self._spring_handle.start(override=True)
@@ -2211,6 +2212,7 @@ class HPGHelicopter(Helicopter):
                 self.cpO_y = round(utils.scale(collective_pos,(0, 1), (4096, -4096)))
                 self.spring_y.cpOffset = self.cpO_y
                 # self.damper.damper(coef_y=0).start()
+                self.spring_y.positiveCoefficient = self.spring_y.negativeCoefficient = round(4096 * utils.clamp(self.collective_ap_spring_gain, 0, 1))
 
                 self._spring_handle.setCondition(self.spring_y)
                 self._spring_handle.start(override=True)
