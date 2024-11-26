@@ -26,6 +26,7 @@ from typing import List, Dict
 # from utils import clamp, HighPassFilter, Derivative, Dispenser
 
 from telemffb.hw.ffb_rhino import EFFECT_TRIANGLE, HapticEffect, FFBReport_SetCondition
+from telemffb.hw.ffb_rhino import EFFECT_SPRING,EFFECT_DAMPER, EFFECT_INERTIA, EFFECT_FRICTION, EFFECT_SPRING_ADJUSTER
 import telemffb.globals as G
 from telemffb.globals import master_instance, master_buttons
 
@@ -1739,7 +1740,7 @@ class AircraftBase(object):
         # effects.foreach(lambda e: e.stop())
         for key, effect in effects.dict.items():
             if self.keep_forces_on_pause:
-                if key in ["damper", "inertia", "friction", "spring"]:
+                if effect.effect_type in [EFFECT_SPRING, EFFECT_DAMPER, EFFECT_INERTIA, EFFECT_FRICTION, EFFECT_SPRING_ADJUSTER]:
                     continue
             effect.stop()
 
