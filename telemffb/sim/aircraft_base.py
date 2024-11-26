@@ -558,6 +558,8 @@ class AircraftBase(object):
         input_data = HapticEffect.device.get_input()
         x, y = input_data.axisXY()
         _, spring_y_center = input_data.CP_XY()
+        if spring_y_center is None:
+            spring_y_center = 0
         derivative_hz = 5  # derivative lpf filter -3db Hz
         derivative_k = 0.1  # derivative gain value, or damping ratio
 
