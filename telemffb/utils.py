@@ -1577,18 +1577,6 @@ class OutLog(QtCore.QObject):
     def flush(self):
         pass
 
-
-def winreg_get(path, key):
-    try:
-        registry_key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, path, 0,
-                                      winreg.KEY_READ)
-        value, regtype = winreg.QueryValueEx(registry_key, key)
-        winreg.CloseKey(registry_key)
-        return value
-    except WindowsError:
-        return None
-
-
 class FetchLatestVersion(QThread):
     workers = []
 
@@ -1651,8 +1639,8 @@ class FetchLatestVersion(QThread):
 
 
 def launch_vpconf(serial=None):
-    vpconf_path = winreg_get("SOFTWARE\\VPforce\\RhinoFFB", "path")
-    # serial = HapticEffect.device.serial
+    settings = QSettings("VPforce", "RhinoFFB")
+    vpconf_path = settings.value("path")
 
     if vpconf_path:
         logging.info(f"Found VPforce Configurator at {vpconf_path}")
@@ -1845,8 +1833,8 @@ def load_custom_userconfig(new_path=""):
 
 
 def set_vpconf_profile(config_filepath, serial):
-    vpconf_path = winreg_get("SOFTWARE\\VPforce\\RhinoFFB", "path")
-    # serial = HapticEffect.device.serial
+    settings = QSettings("VPforce", "RhinoFFB")
+    vpconf_path = settings.value("path")
 
     if vpconf_path:
         logging.info(f"Found VPforce Configurator at {vpconf_path}")
