@@ -699,64 +699,31 @@ def to_number(v: str):
     If unable, return the original string
     """
     orig_v = v
-    if isinstance(v, bool):
+    if isinstance(v, (bool, int)):
         return v
-    if isinstance(v, int):
-        v = str(v)
+
+    v_lower = v.lower()
+    if v_lower in ["true", "yes", "on", "enable", "enabled"]:
+        return True
+    if v_lower in ["false", "no", "off", "disable", "disabled"]:
+        return False
+
+    scale = 1
+    unit_conversions = {
+        "%": 0.01, "kt": 0.51444, "kph": 1 / 3.6, "fpm": 0.00508, "m/s": 1,
+        "mph": 0.44704, "deg": 1, "ms": 1, "hz": 1, "m": 1, "ft": 0.3048,
+        "in": 0.0254, "m^2": 1, "ft^2": 0.092903
+    }
+
+    for unit, factor in unit_conversions.items():
+        if v_lower.endswith(unit) or v_lower.startswith(unit):
+            scale = factor
+            v = v.strip(unit)
+            break
+
     try:
-        # handle boolean strings -> bool return
-        lower = v.lower()
-        if lower in ["true", "yes", "on", "enable", "enabled"]:
-            return True
-        if lower in ["false", "no", "off", "disable", "disabled"]:
-            return False
-
-        scale = 1
-        if v.lower().endswith("%") or v.startswith("%"):  # handle percent strings
-            scale = 0.01
-            v = v.strip("%")
-        if v.lower().endswith("kt"):  # handle unit conversion: kt->ms
-            scale = 0.51444
-            v = v.strip("kt")
-        if v.lower().endswith("kph"):  # handle unit conversion: kph->ms
-            scale = 1 / 3.6
-            v = v.strip("kph")
-        if v.lower().endswith("fpm"):  # handle unit conversion: fpm->ms
-            scale = 0.00508
-            v = v.strip("fpm")
-        if v.lower().endswith("m/s"):  # handle unit conversion: kph->ms
-            scale = 1
-            v = v.strip("m/s")
-        if v.lower().endswith("mph"):  # handle unit conversion: mph->ms
-            scale = 0.44704
-            v = v.strip("mph")
-        if v.lower().endswith("deg"):  # just strip out degrees suffix
-            v = v.strip("deg")
-        if v.lower().endswith("ms"):  # strip out milliseconds suffix
-            v = v.strip("ms")
-        if v.lower().endswith("hz"):  # strip out hertz suffix
-            v = v.strip("hz")
-        if v.lower().endswith("m"):  # strip out m meters suffix
-            v = v.strip("m")
-        if v.lower().endswith("ft"):  # handle ft->m conversion
-            scale = 0.3048
-            v = v.strip("ft")
-        if v.lower().endswith("in"):  # handle in->m conversion
-            scale = 0.0254
-            v = v.strip("in")
-        if v.lower().endswith("m^2"):  # strip out m meters suffix
-            v = v.strip("m^2")
-        if v.lower().endswith("ft^2"):  # handle ft^2->m^2 conversion
-            scale = 0.092903
-            v = v.strip("ft^2")
-
-        if "." in v:
-            return round(float(v) * scale, 4)
-        else:
-            return int(v) * scale
-
+        return round(float(v) * scale, 4) if "." in v else int(v) * scale
     except ValueError:
-        # return v
         return orig_v
 
 
