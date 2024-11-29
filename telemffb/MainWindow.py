@@ -1496,8 +1496,10 @@ class MainWindow(QMainWindow):
                 for key, effect in effects.dict.items():
                     if effect.started:
                         descr, settingname = utils.EffectTranslator.get_translation(effect.name)
-                        if descr not in active_effects:
-                            active_effects = '\n'.join([active_effects, descr])
+                        
+                        descr = "ID:{} {}".format(effect.id, descr)
+                        
+                        active_effects += descr + "\n"
                         if settingname not in active_settings and settingname != '':
                             active_settings.append(settingname)
 
@@ -1520,7 +1522,7 @@ class MainWindow(QMainWindow):
                     my_slider.blockSignals(True)
 
                     for a_s in active_settings:
-                        if bool(re.search(a_s, slidername)):
+                        if a_s in slidername:
                             my_slider.setHandleColor("#17c411")
                             break
                         else:
@@ -1551,7 +1553,7 @@ class MainWindow(QMainWindow):
                         my_slider.blockSignals(False)
                         continue
                     for a_s in active_settings:
-                        if bool(re.search(a_s, slidername)):
+                        if a_s in slidername:
                             my_slider.setHandleColor("#17c411")
                             break
                         else:

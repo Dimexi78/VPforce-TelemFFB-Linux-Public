@@ -932,6 +932,10 @@ class HapticEffect(Destroyable):
 
     def __repr__(self):
         return f"HapticEffect({self._h_effect})"
+    
+    @property
+    def id(self):
+        return self._h_effect.effect_id if self._h_effect else None
 
     # Open defaut Rhino device, specific devices can be specified using serial or path arguments
     # path example: \\\\?\\HID#VID_FFFF&PID_2055&MI_00#9&3450694a&0&0000#{4d1e55b2-f16f-11cf-88cb-001111000030}
