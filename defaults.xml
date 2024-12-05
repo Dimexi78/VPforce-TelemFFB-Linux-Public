@@ -2329,6 +2329,7 @@
 		<Grouping>Buffeting</Grouping>
 		<order>480</order>
 		<name>il2_shake_master</name>
+		<info>These effects are duplicates of effects that are implemented by IL2 natively.  Recommend to disable the "shake" in IL2 FFB settings if you enable these.</info>
 		<displayname>IL2 Shake Master</displayname>
 		<IL2>true</IL2>
 		<joystick>true</joystick>
@@ -2339,7 +2340,7 @@
 	</defaults>
 	<defaults>
 		<Grouping>Buffeting</Grouping>
-		<order>490</order>
+		<order>480.2</order>
 		<name>il2_enable_buffet</name>
 		<prereq>il2_shake_master</prereq>
 		<info>These effects are duplicates of IL-2 native effects&lt;br&gt;&lt;br&gt;.  Recommend to disable 'shake' in IL-2 FFB settings when using these effects.</info>
@@ -2353,20 +2354,22 @@
 	</defaults>
 	<defaults>
 		<Grouping>Buffeting</Grouping>
-		<order>490.1</order>
+		<order>480.21</order>
 		<name>il2_buffeting_factor</name>
 		<prereq>il2_enable_buffet</prereq>
 		<info>common setting for all buffeting (stall, gear, etc)  - IL2 limitation</info>
-		<displayname>Buffeting</displayname><IL2>true</IL2><joystick>true</joystick>
+		<displayname>Buffeting</displayname>
+		<IL2>true</IL2>
+		<joystick>true</joystick>
 		<pedals>true</pedals>
 		<collective>true</collective>
 		<validvalues>0,250</validvalues>
 		<value>.4</value>
 		<datatype>float</datatype>
-		</defaults>
+	</defaults>
 	<defaults>
 		<Grouping>Movement</Grouping>
-		<order>500</order>
+		<order>480.3</order>
 		<name>il2_enable_runway_rumble</name>
 		<prereq>il2_shake_master</prereq>
 		<displayname>Runway Rumble</displayname>
@@ -2379,7 +2382,7 @@
 	</defaults>
 	<defaults>
 		<Grouping>Movement</Grouping>
-		<order>500.1</order>
+		<order>480.31</order>
 		<name>il2_runway_rumble_intensity</name>
 		<prereq>il2_enable_runway_rumble</prereq>
 		<displayname>Runway Rumble</displayname>
@@ -2394,7 +2397,7 @@
 	</defaults>
 	<defaults>
 		<Grouping>Weapons</Grouping>
-		<order>510</order>
+		<order>480.4</order>
 		<name>il2_enable_weapons</name>
 		<prereq>il2_shake_master</prereq>
 		<displayname>Weapon Effects</displayname>
@@ -2402,16 +2405,45 @@
 		<joystick>true</joystick>
 		<pedals>true</pedals>
 		<collective>true</collective>
-		<sliderfactor></sliderfactor>
 		<value>true</value>
 		<datatype>bool</datatype>
 	</defaults>
 	<defaults>
 		<Grouping>Weapons</Grouping>
-		<order>510.1</order>
+		<order>480.41</order>
 		<name>il2_weapon_release_intensity</name>
 		<prereq>il2_enable_weapons</prereq>
-		<displayname>Weapon Effects</displayname>
+		<displayname>Gunfire</displayname>
+		<IL2>true</IL2>
+		<joystick>true</joystick>
+		<pedals>true</pedals>
+		<collective>true</collective>
+		<sliderfactor>1</sliderfactor>
+		<validvalues>0,100</validvalues>
+		<value>0.3</value>
+		<datatype>float</datatype>
+	</defaults>
+	<defaults>
+		<Grouping>Weapons</Grouping>
+		<order>480.42</order>
+		<name>il2_bomb_release_intensity</name>
+		<prereq>il2_enable_weapons</prereq>
+		<displayname>Bombs</displayname>
+		<IL2>true</IL2>
+		<joystick>true</joystick>
+		<pedals>true</pedals>
+		<collective>true</collective>
+		<sliderfactor>1</sliderfactor>
+		<validvalues>0,100</validvalues>
+		<value>0.3</value>
+		<datatype>float</datatype>
+	</defaults>
+	<defaults>
+		<Grouping>Weapons</Grouping>
+		<order>480.43</order>
+		<name>il2_rocket_release_intensity</name>
+		<prereq>il2_enable_weapons</prereq>
+		<displayname>Rockets</displayname>
 		<IL2>true</IL2>
 		<joystick>true</joystick>
 		<pedals>true</pedals>
