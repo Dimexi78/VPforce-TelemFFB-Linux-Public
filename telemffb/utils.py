@@ -625,6 +625,7 @@ class SystemSettings(QSettings):
         'pathXPLANE': '',
         'enableIL2': False,
         'validateIL2': True,
+        'focus_pauseIL2': True,
         'validateDCS': True,
         'pathIL2': 'C:/Program Files/IL-2 Sturmovik Great Battles',
         'portIL2': 34385,

@@ -40,6 +40,7 @@ import time
 from typing import List, Dict
 from telemffb.hw.ffb_rhino import HapticEffect, FFBReport_SetCondition
 import telemffb.utils as utils
+import telemffb.globals as G
 import logging
 import random
 from .aircraft_base import AircraftBase, effects
@@ -139,7 +140,6 @@ class Aircraft(AircraftBase):
         self.spring_y = FFBReport_SetCondition(parameterBlockOffset=1)
         for e in effects.values(): e.destroy()
         effects.clear()
-        self._focus_last_value = 1
 
         # self.spring = HapticEffect().spring()
         # self.spring_x = FFBReport_SetCondition(parameterBlockOffset=0)
@@ -211,14 +211,6 @@ class Aircraft(AircraftBase):
             effects["damage"].periodic(damage_freq, damage_amp, utils.RandomDirectionModulator, effect_type=EFFECT_SQUARE, duration=30).start()
         elif not self.anything_has_changed("damage", damage, delta_ms=120):
             effects.dispose("damage")
-    def _update_focus_loss(self, telem_data):
-        focus = telem_data.get("Focus")
-        if focus != self._focus_last_value:
-            logging.info("IL-2 Window focus changed, resetting effects")
-            effects.clear()
-            self._focus_last_value = focus
-        else:
-            self._focus_last_value = focus
 
     def on_telemetry(self, telem_data : dict):
         ## Generic Aircraft Telemetry Handler
@@ -227,10 +219,11 @@ class Aircraft(AircraftBase):
         :param new_data: New telemetry data
         :type new_data: dict
         """
-        if telem_data.get('SimPaused', False):
+        if telem_data.get('SimPaused', False) or telem_data.get('MPMenu') or not telem_data.get('Focus', False):
             if not self.stop_state:
                 self.on_timeout()
             self.stop_state = True
+            G.telem_manager.telemetryTimeout.emit(True)
             return
         self.stop_state = False
 
@@ -241,9 +234,6 @@ class Aircraft(AircraftBase):
         if telem_data.get("N") == None:
             return
 
-        if not telem_data.get("Focus",0):
-            self.on_timeout()
-            return
 
         # self._update_focus_loss(telem_data)
         if self.deceleration_effect_enable:
@@ -291,19 +281,18 @@ class PropellerAircraft(Aircraft):
     # run on every telemetry frame
     def on_telemetry(self, telem_data):
         ## Propeller Aircraft Telemetry Handler
-        if telem_data.get('SimPaused', False):
+        if telem_data.get('SimPaused', False) or telem_data.get('MPMenu') or not telem_data.get('Focus', False):
+
             if not self.stop_state:
                 self.on_timeout()
             self.stop_state = True
+            G.telem_manager.telemetryTimeout.emit(True)
             return
         self.stop_state = False
 
         if telem_data.get("N") == None:
             return
 
-        if not telem_data.get("Focus",0):
-            self.on_timeout()
-            return
 
         telem_data["AircraftClass"] = "PropellerAircraft"   #inject aircraft class into telemetry
 
@@ -325,18 +314,16 @@ class JetAircraft(Aircraft):
       # run on every telemetry frame
     def on_telemetry(self, telem_data):
         ## Jet Aircraft Telemetry Handler
-        if telem_data.get('SimPaused', False):
+        if telem_data.get('SimPaused', False) or telem_data.get('MPMenu') or not telem_data.get('Focus', False):
+
             if not self.stop_state:
                 self.on_timeout()
             self.stop_state = True
+            G.telem_manager.telemetryTimeout.emit(True)
             return
         self.stop_state = False
 
         if telem_data.get("N")== None:
-            return
-
-        if not telem_data.get("Focus",0):
-            self.on_timeout()
             return
 
         telem_data["AircraftClass"] = "JetAircraft"   #inject aircraft class into telemetry

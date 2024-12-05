@@ -38,6 +38,7 @@ import struct
 from enum import IntEnum
 from dataclasses import dataclass
 import telemffb.utils as utils
+import telemffb.globals as G
 import pygetwindow as get_focus_window
 
 
@@ -302,9 +303,9 @@ class IL2Manager():
         # stale frames.
         paused_data = [self.state.acceleration_Gs, self.state.above_ground_level_metres,self.state.rpm, self.rot_accel, self.rot_velocity]
         if paused_data == self.last_paused_data:
-            self.telem_data['SimPaused'] = True
+            self.telem_data['MPMenu'] = True
         else:
-            self.telem_data['SimPaused'] = False
+            self.telem_data['MPMenu'] = False
         self.last_paused_data = paused_data
 
         packet = bytes(";".join([f"{k}={self.fmt(v)}" for k, v in self.telem_data.items()]), "utf-8")
@@ -336,12 +337,16 @@ class IL2Manager():
             focus_window = get_focus_window.getActiveWindow().title
         except:
             focus_window = "unknown"
-        if "Il-2" in focus_window:
+        if G.system_settings.get('focus_pauseIL2', True):
+            if "Il-2" in focus_window:
+                self.telem_data["Focus"] = 1
+                self.telem_data["SimPaused"] = 0
+            else:
+                self.telem_data["Focus"] = 0
+                self.telem_data["SimPaused"] = 1
+        else:
             self.telem_data["Focus"] = 1
             self.telem_data["SimPaused"] = 0
-        else:
-            self.telem_data["Focus"] = 0
-            self.telem_data["SimPaused"] = 1
 
         dbg(1,f"telem tick {tick} size {packet_size}")
 

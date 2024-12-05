@@ -50,6 +50,7 @@ class SystemSettingsDialog(QDialog, Ui_SystemDialog):
         # Add tooltips
         self.validateDCS.setToolTip('If enabled, TelemFFB will automatically install the necessary export script and update the DCS export.lua file')
         self.validateIL2.setToolTip('If enabled, TelemFFB will automatically set up the required configuration in IL2 to support telemetry export')
+        self.focus_pauseIL2.setToolTip('When enabled, TelemFFB will enter a pause state when focus is lost on the IL2 game window. (Enabled by default)\n\nNote: While disabling can aid in adjusting effects in real time, when the IL2 window loses focus, it also loses all inputs.\nThis may result in odd behavior and stuck effects while the window is out of focus.')
         self.pathIL2.setToolTip('The root path where IL-2 Strumovik is installed')
         self.lab_pathIL2.setToolTip('The root path where IL-2 Strumovik is installed')
         self.validateXPLANE.setToolTip('If enabled, TelemFFB will automatically install the required X-Plane plugin and keep it up to date when it changes')
@@ -251,6 +252,7 @@ class SystemSettingsDialog(QDialog, Ui_SystemDialog):
         il2_enabled = self.enableIL2.isChecked()
         # self.il2_sub_layout.setEnabled(il2_enabled)
         self.validateIL2.setEnabled(il2_enabled)
+        self.focus_pauseIL2.setEnabled(il2_enabled)
         self.lab_pathIL2.setEnabled(il2_enabled)
         self.pathIL2.setEnabled(il2_enabled)
         self.browseIL2.setEnabled(il2_enabled)
@@ -365,6 +367,7 @@ class SystemSettingsDialog(QDialog, Ui_SystemDialog):
             "pathXPLANE": self.pathXPLANE.text(),
             "enableIL2": self.enableIL2.isChecked(),
             "validateIL2": self.validateIL2.isChecked(),
+            "focus_pauseIL2": self.focus_pauseIL2.isChecked(),
             "pathIL2": self.pathIL2.text(),
             "portIL2": str(self.portIL2.text()),
             'masterInstance': self.master_button_group.checkedId(),
@@ -504,6 +507,8 @@ class SystemSettingsDialog(QDialog, Ui_SystemDialog):
         self.toggle_il2_widgets()
 
         self.validateIL2.setChecked(settings_dict.get('validateIL2', True))
+
+        self.focus_pauseIL2.setChecked(settings_dict.get('focus_pauseIL2', True))
 
         self.pathIL2.setText(settings_dict.get('pathIL2', 'C:/Program Files/IL-2 Sturmovik Great Battles'))
 
