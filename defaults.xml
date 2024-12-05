@@ -1459,7 +1459,7 @@
 		<MSFS>true</MSFS>
 		<XPLANE>true</XPLANE>
 		<joystick>true</joystick>
-		<validvalues>-100,100</validvalues>
+		<validvalues>-200,200</validvalues>
 		<value>0.2</value>
 		<datatype>negfloat</datatype>
 	</defaults>
@@ -1487,7 +1487,7 @@
 		<MSFS>true</MSFS>
 		<XPLANE>true</XPLANE>
 		<joystick>true</joystick>
-		<validvalues>-100,100</validvalues>
+		<validvalues>-200,200</validvalues>
 		<value>0.2</value>
 		<datatype>negfloat</datatype>
 	</defaults>
@@ -1514,7 +1514,7 @@
 		<MSFS>true</MSFS>
 		<XPLANE>true</XPLANE>
 		<pedals>true</pedals>
-		<validvalues>-100,100</validvalues>
+		<validvalues>-200,200</validvalues>
 		<value>0.2</value>
 		<datatype>negfloat</datatype>
 	</defaults>
