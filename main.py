@@ -197,8 +197,19 @@ def main():
     dev_serial = None
 
     G.defaults_path = utils.get_resource_path('defaults.xml', prefer_root=True)
-    G.userconfig_rootpath = os.path.join(os.environ['LOCALAPPDATA'], "VPForce-TelemFFB")
-    G.userconfig_path = os.path.join(G.userconfig_rootpath, 'userconfig.xml')
+    if G.dev_build and G.dev_userconfig:
+        # manage userconfig in local running directory to avoid interfering with production userconfig
+        if getattr(sys, 'frozen', False):
+            # Running as a bundled executable with PyInstaller
+            G.userconfig_rootpath = os.path.dirname(sys.executable)
+        else:
+            # Running as a standard Python script
+            G.userconfig_rootpath = os.path.dirname(os.path.abspath(__file__))
+        G.userconfig_path = os.path.join(G.userconfig_rootpath, 'userconfig.xml')
+
+    else:
+        G.userconfig_rootpath = os.path.join(os.environ['LOCALAPPDATA'], "VPForce-TelemFFB")
+        G.userconfig_path = os.path.join(G.userconfig_rootpath, 'userconfig.xml')
 
     utils.create_empty_userxml_file(G.userconfig_path)
 
