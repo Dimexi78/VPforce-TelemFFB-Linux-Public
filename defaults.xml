@@ -1194,7 +1194,7 @@
 		<joystick>true</joystick>
 		<pedals>true</pedals>
 		<collective>true</collective>
-		<value>false</value>
+		<value>true</value>
 		<datatype>bool</datatype>
 	</defaults>
 	<defaults>
