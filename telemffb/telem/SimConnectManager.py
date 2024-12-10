@@ -206,6 +206,9 @@ class SimConnectManager(threading.Thread):
         SimVarArray("HydResPct", "HYDRAULIC RESERVOIR PERCENT", "Percent Over 100", min=1, max=2),
         SimVar("HydSwitch", "HYDRAULIC SWITCH", "bool"),
         SimVar("HydSys", "HYDRAULIC SYSTEM INTEGRITY", "Percent Over 100"),
+        SimVar("_IS IN RTC", "IS IN RTC", "bool"),
+        SimVar("_IS AVATAR", "IS AVATAR", "bool"),
+        SimVar("_IS AIRCRAFT", "IS AIRCRAFT", "bool"),
 
     ]
 
@@ -478,7 +481,10 @@ class SimConnectManager(threading.Thread):
                     # if not self._sim_paused and not data["Parked"] and not data["Slew"]:     # fixme: figure out why simstart/stop and sim events dont work right
                     #     self.emit_packet(data)
                     #     self._final_frame_sent = 0
-                    if self._sim_paused or data.get("Parked", 0) or data.get("Slew", 0):     # fixme: figure out why simstart/stop and sim events dont work right
+                    avatar = data.get("_IN AVATAR", False) # in 2024, see if user is controlling avatar
+                    rtc = data.get("_IS IN RTC", False) # check if 2024 sim is running realtime cinematic (cut scene)
+
+                    if self._sim_paused or data.get("Parked", 0) or data.get("Slew", 0) or avatar or rtc:     # fixme: figure out why simstart/stop and sim events dont work right
                         data["STOP"] = 1
                         data['_num_simvars'] = len(data)
                         
