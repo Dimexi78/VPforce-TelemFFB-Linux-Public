@@ -1,4 +1,23 @@
 This is not an exhaustive change log (see github for that).  This file only outlines the new/improved/changed functionality for new commits
+############################################
+##  December 13, 2024
+############################################
+## General
+- General UI optimization
+  - Lighter weight UI theme
+  - Effect IDs visible in effects monitor (to match effect IDs visible in configurator debug tab)
+  - More robust geometry saving
+- "Keep forces on Pause" feature now honors all active spring/damper/inertia/friction effects
+## DCS
+- Option added in system settings to disable export script checking/auto-install for those using non-standard save games locations
+## IL-2
+- Improved effect management during IL2 game window focus loss
+- Added IL-2 system settings option to leave effects running during window focus loss.  Can assist with effect tuning but may lead to odd behavior and/or stuck effects
+- Added discrete effect settings for gunfire/rocket/bomb (was previously a single "weapon release" effect)
+## MSFS
+- Work around *some* of the active telemetry issues in MSFS2024 when in menus, avatar mode and cinematic cut scenes
+- Added many basic profiles for default MSFS2024 aircraft
+- "Axis Control" now enabled by default
 
 ############################################
 ##  November 3, 2024
