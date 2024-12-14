@@ -1453,6 +1453,7 @@ class MainWindow(QMainWindow):
             # Items to move to the beginning (reverse order)
             if 'SimconnectCategory' in keys: data.move_to_end('SimconnectCategory', last=False)
             if 'AircraftClass' in keys: data.move_to_end('AircraftClass', last=False)
+            if 'msfs_vers' in keys: data.move_to_end('msfs_vers', last=False)
             if 'src' in keys: data.move_to_end('src', last=False)
             if 'N' in keys: data.move_to_end('N', last=False)
             if 'FFBType' in keys: data.move_to_end('FFBType', last=False)

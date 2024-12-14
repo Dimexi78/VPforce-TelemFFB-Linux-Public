@@ -234,6 +234,7 @@ class SimConnectManager(threading.Thread):
         self.req_id = os.getpid()
         self.def_id = os.getpid()
         self.sv_dict = {}
+        self.connected_version = None
 
 
 
@@ -425,6 +426,13 @@ class SimConnectManager(threading.Thread):
                 self.emit_event("Quit")
                 break
             elif isinstance(recv, RECV_OPEN):
+                msfs_vers = recv.szApplicationName.decode('utf-8')
+                if msfs_vers == 'SunRise':
+                    self.connected_version = "MSFS2024"
+                elif msfs_vers == "KittyHawk":
+                    self.connected_version = "MSFS2020"
+                else:
+                    self.connected_version = msfs_vers
                 self.emit_event("Open")
 
             elif isinstance(recv, RECV_EVENT):
@@ -478,16 +486,13 @@ class SimConnectManager(threading.Thread):
                             # dbprint("red", "**DEBUG*** Exception parsing SC FRAME")
                             continue
 
-                    # if not self._sim_paused and not data["Parked"] and not data["Slew"]:     # fixme: figure out why simstart/stop and sim events dont work right
-                    #     self.emit_packet(data)
-                    #     self._final_frame_sent = 0
                     avatar = data.get("_IN AVATAR", False) # in 2024, see if user is controlling avatar
                     rtc = data.get("_IS IN RTC", False) # check if 2024 sim is running realtime cinematic (cut scene)
 
-                    if self._sim_paused or data.get("Parked", 0) or data.get("Slew", 0) or avatar or rtc:     # fixme: figure out why simstart/stop and sim events dont work right
+                    if self._sim_paused or data.get("Parked", 0) or data.get("Slew", 0) or avatar or rtc:
                         data["STOP"] = 1
                         data['_num_simvars'] = len(data)
-                        
+                        data['msfs_vers'] = self.connected_version
                         if not self._stop_state:
                             self.emit_event("STOP")
                             self.emit_packet(data) # emit last packet
