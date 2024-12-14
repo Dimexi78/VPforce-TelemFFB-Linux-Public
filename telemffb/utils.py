@@ -1366,19 +1366,21 @@ def install_xplane_plugin(path, window):
 
 def install_export_lua(window):
     saved_games = winpaths.get_path(winpaths.FOLDERID.SavedGames)
-    logging.info(f"Found Saved Games directory: {saved_games}")
-
+    logging.info(f"DCS Export Installer: Found Saved Games directory: {saved_games}")
+    logging.info("DCS Export Installer: Checking for standard 'DCS' and 'DCS.openbeta' directories")
     for dirname in ["DCS", "DCS.openbeta"]:
         p = os.path.join(saved_games, dirname)
         if not os.path.exists(p):
-            logging.info(f"{p} does not exist, ignoring")
+            logging.info(f"DCS Export Installer: {p} does not exist, ignoring")
             continue
+        else:
+            logging.info(f"DCS Export Installer: Found {p}, checking export script")
 
         path = os.path.join(saved_games, dirname, 'Scripts')
         os.makedirs(path, exist_ok=True)
         out_path = os.path.join(path, "TelemFFB.lua")
 
-        logging.info(f"Checking {path}")
+        logging.info(f"DCS Export Installer: Checking {path}")
 
         try:
             data = open(os.path.join(path, "Export.lua")).read()
@@ -1389,7 +1391,7 @@ def install_export_lua(window):
 
         def write_script():
             data = open(local_telemffb, "rb").read()
-            logging.info(f"Writing to {out_path}")
+            logging.info(f"DCS Export Installer: Writing to {out_path}")
             open(out_path, "wb").write(data)
 
         export_installed = "telemffblfs" in data
@@ -1403,11 +1405,13 @@ def install_export_lua(window):
                                            f"Update export script {out_path} ?")
                 if dia == QMessageBox.Yes:
                     write_script()
+            else:
+                logging.info(f"DCS Export Installer: TelemFFB entry is present in export script located at {path}, no update required")
         else:
             dia = QMessageBox.question(window, "Confirm", f"Install export script into {path}?")
             if dia == QMessageBox.Yes:
                 if not export_installed:
-                    logging.info("Updating export.lua")
+                    logging.info("DCS Export Installer: Updating export.lua")
                     line = "local telemffblfs=require('lfs');dofile(telemffblfs.writedir()..'Scripts/TelemFFB.lua')"
                     f = open(os.path.join(path, "Export.lua"), "a+")
                     f.write("\n" + line)
@@ -1693,7 +1697,7 @@ def get_resource_path(relative_path, prefer_root=False, force=False):
             # if the file exists, return the path
             return f_path
         else:
-            logging.info(
+            logging.debug(
                 f"get_resource_path, root_prefer=True.  Did not find {relative_path} relative to script/exe dir.. looking in bundle dir...")
             # fall back to bundle dir if not found it script dir, log warning if still not found
             # note, script dir and bundle dir are same when running from source
@@ -1701,6 +1705,7 @@ def get_resource_path(relative_path, prefer_root=False, force=False):
             if not os.path.isfile(f_path):
                 logging.warning(
                     f"Warning, get_resource_path, root_prefer=True, did not find file in script/exe folder or bundle folder: {f_path}")
+            logging.debug(f"get_resource_path, Found {relative_path} located at {f_path}")
             return f_path
     else:
         f_path = os.path.join(bundle_dir, relative_path)
