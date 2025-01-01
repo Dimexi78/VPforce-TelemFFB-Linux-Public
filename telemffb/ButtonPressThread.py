@@ -47,6 +47,7 @@ class ButtonPressThread(QThread):
             # initial_buttons = list(set(self_buttons + target_buttons))
         else:
             initial_buttons = input_data.getPressedButtons()
+            initial_master_buttons = G.master_buttons
 
         while not emit_sent and time.time() - start_time < self.timeout:
             input_data = self.device.device.get_input()
@@ -57,6 +58,7 @@ class ButtonPressThread(QThread):
                 # current_buttons = list(set(self_buttons + target_buttons))
             else:
                 current_buttons = set(input_data.getPressedButtons())
+                current_master_buttons = set(G.master_buttons)
             countdown = int(self.timeout - (time.time() - start_time))
             self.button_obj.setText(f"Push a button! {countdown}..")
             # Check for new button press
@@ -75,7 +77,10 @@ class ButtonPressThread(QThread):
                     if btn not in initial_buttons:
                         self.button_pressed.emit(self.button_name, btn)
                         emit_sent = 1
-
+                for btn in current_master_buttons:
+                    if btn not in initial_master_buttons:
+                        self.button_pressed.emit(self.button_name, btn)
+                        emit_sent = 1
             time.sleep(0.1)
 
         # Emit signal for timeout with value 0
