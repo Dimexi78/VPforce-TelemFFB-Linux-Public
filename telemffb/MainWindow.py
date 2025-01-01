@@ -519,7 +519,7 @@ class MainWindow(QMainWindow):
         # self.tab_widget.setCursor(QCursor(QtCore.Qt.PointingHandCursor))
 
         # Set the main window area height to 0
-        self.tab_widget.setMinimumHeight(14)
+        # self.tab_widget.setMinimumHeight(14)
         style_sheet = """
         QTabBar::tab:selected {
             background-color: qlineargradient(x1:0, y1:0, x2:1, y2:1,
@@ -614,6 +614,8 @@ class MainWindow(QMainWindow):
 
         self.tab_widget.addTab(QWidget(), "Hide")
         self.tab_widget.currentChanged.connect(self.switch_window_view)
+        tb_height = self.tab_widget.tabBar().sizeHint().height()
+        self.tab_widget.setMinimumHeight(tb_height)
 
 
         # test buttons
