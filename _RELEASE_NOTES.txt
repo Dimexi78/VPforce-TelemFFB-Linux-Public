@@ -1,5 +1,16 @@
 This is not an exhaustive change log (see github for that).  This file only outlines the new/improved/changed functionality for new commits
 ############################################
+##  January 1, 2025
+############################################
+## General
+- It is now possible to bind and use button presses from the master instance to control force trim functions in the pedal/collective instances
+  - In the force trim settings for the respective device, enable the "use buttons from master" option and then bind your button(s).
+- Fix some UI sizing issues
+## MSFS
+- (FS24) Fixed state detection during avatar walkaround for telemetry/effect pausing
+
+
+############################################
 ##  December 13, 2024
 ############################################
 ## General
