@@ -1571,15 +1571,18 @@ class AircraftBase(object):
         input_data = HapticEffect.device.get_input()
         phys_x, phys_y = input_data.axisXY()
 
-        if self.pedal_ft_use_master_buttons:
-            force_trim_pressed = self.check_master_button_press(self.pedal_ft_release_button) if self.pedal_ft_release_button else False
+        force_trim_pressed = self.check_button_press(self.pedal_ft_release_button, self.pedal_ft_use_master_buttons)
+        trim_reset_pressed = self.check_button_press(self.pedal_ft_reset_button, self.pedal_ft_use_master_buttons)
 
-            trim_reset_pressed = self.check_master_button_press(self.pedal_ft_reset_button) if self.pedal_ft_reset_button else False
-        else:
-
-            force_trim_pressed = input_data.isButtonPressed(self.pedal_ft_release_button) if self.pedal_ft_release_button else False
-
-            trim_reset_pressed = input_data.isButtonPressed(self.pedal_ft_reset_button) if self.pedal_ft_reset_button else False
+        # if self.pedal_ft_use_master_buttons:
+        #     force_trim_pressed = self.check_master_button_press(self.pedal_ft_release_button) if self.pedal_ft_release_button else False
+        #
+        #     trim_reset_pressed = self.check_master_button_press(self.pedal_ft_reset_button) if self.pedal_ft_reset_button else False
+        # else:
+        #
+        #     force_trim_pressed = input_data.isButtonPressed(self.pedal_ft_release_button) if self.pedal_ft_release_button else False
+        #
+        #     trim_reset_pressed = input_data.isButtonPressed(self.pedal_ft_reset_button) if self.pedal_ft_reset_button else False
         if force_trim_pressed:
 
             if self.pedal_ft_damper_enabled:
@@ -1693,7 +1696,8 @@ class AircraftBase(object):
         current_buttons = input_data.getPressedButtons()
 
         # decide what to do depending on which button is pressed
-        if self.collective_ft_ovd_release and self.collective_ft_ovd_release in current_buttons:
+        # if self.collective_ft_ovd_release and self.collective_ft_ovd_release in current_buttons:
+        if self.check_button_press(self.collective_ft_ovd_release, self.collective_ft_use_master_buttons):
             # use spring force as dampening.  Configured damper value applied as spring gain.  cpO will follow stick
             # as it is moved while spring force is enabled.
             # return from method so default spring gains do not get applied at the end of the method
@@ -1708,7 +1712,8 @@ class AircraftBase(object):
             spring.start(override=True)
             return
 
-        elif self.collective_ft_ovd_reset and self.collective_ft_ovd_reset in current_buttons:
+        # elif self.collective_ft_ovd_reset and self.collective_ft_ovd_reset in current_buttons:
+        elif self.check_button_press(self.collective_ft_ovd_reset, self.collective_ft_use_master_buttons):
             # if trim reset button pressed, set offsets back to 0
             # print("TRIM RESET")
             self.spring_y.cpOffset = self.collective_ft_ovd_cp0_y = 4096
@@ -1721,7 +1726,8 @@ class AircraftBase(object):
 
         # evaluate UP or DOWN and then LEFT or RIGHT trims.  Allows movement on both axes simultaneously but not
         # accidental confliction of trying to move both directions on a single axis due to bad hat bindings
-        if self.collective_ft_ovd_trim_down and self.collective_ft_ovd_trim_down in current_buttons:
+        # if self.collective_ft_ovd_trim_down and self.collective_ft_ovd_trim_down in current_buttons:
+        if self.check_button_press(self.collective_ft_ovd_trim_down, self.collective_ft_use_master_buttons):
             # shift offset based on previously calculated step size.  Ensure value does not exceed limits
             # print("TRIM DOWN")
             if self.collective_ft_ovd_cp0_y + trim_step_size > 4096:
@@ -1729,7 +1735,8 @@ class AircraftBase(object):
             else:
                 self.collective_ft_ovd_cp0_y += trim_step_size
             self.spring_y.cpOffset = round(self.collective_ft_ovd_cp0_y)
-        elif self.collective_ft_ovd_trim_up and self.collective_ft_ovd_trim_up in current_buttons:
+        # elif self.collective_ft_ovd_trim_up and self.collective_ft_ovd_trim_up in current_buttons:
+        elif self.check_button_press(self.collective_ft_ovd_trim_up, self.collective_ft_use_master_buttons):
             # shift offset based on previously calculated step size.  Ensure value does not exceed limits
             # print("TRIM UP")
             if self.collective_ft_ovd_cp0_y - trim_step_size < -4096:

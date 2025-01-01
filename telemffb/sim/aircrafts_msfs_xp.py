@@ -1132,8 +1132,8 @@ class GliderAircraft(Aircraft):
         self._spring_handle.name = "dynamic_spring"
         # logging.debug(f"update_force_trim: x={x_axis}, y={y_axis}")
         input_data = HapticEffect.device.get_input()
-
-        force_trim_pressed = input_data.isButtonPressed(self.force_trim_button)
+        force_trim_pressed = self.check_button_press(self.force_trim_button, self.collective_ft_use_master_buttons)
+        # force_trim_pressed = input_data.isButtonPressed(self.force_trim_button)
         if self.force_trim_reset_button > 0:
             trim_reset_pressed = input_data.isButtonPressed(self.force_trim_reset_button)
         else:
@@ -2097,7 +2097,8 @@ class HPGHelicopter(Helicopter):
         force_trim_pressed = False
         if self.force_trim_enabled and self.force_trim_button:
             input_data = HapticEffect.device.get_input()
-            force_trim_pressed = input_data.isButtonPressed(self.force_trim_button)
+            force_trim_pressed = self.check_button_press(self.force_trim_button, self.collective_ft_use_master_buttons)
+            # force_trim_pressed = input_data.isButtonPressed(self.force_trim_button)
             if self._sim_is_msfs() and force_trim_pressed:
                 self._simconnect.send_event_to_msfs("AUTO_THROTTLE_DISCONNECT", 1)
 

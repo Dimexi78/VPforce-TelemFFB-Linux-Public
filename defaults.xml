@@ -370,6 +370,20 @@
 	<defaults>
 		<Grouping>Basic</Grouping>
 		<order>140.5</order>
+		<name>collective_ft_use_master_buttons</name>
+		<prereq>force_trim_enabled</prereq>
+		<info>Use the button inputs from the master device (likely your joystick).  If disabled, feature will expect to receive inputs from collective (grip or  loopback app).</info>
+		<displayname>Use buttons from master device</displayname>
+		<DCS>true</DCS>
+		<MSFS>true</MSFS>
+		<XPLANE>true</XPLANE>
+		<collective>true</collective>
+		<value>false</value>
+		<datatype>bool</datatype>
+	</defaults>
+	<defaults>
+		<Grouping>Basic</Grouping>
+		<order>140.6</order>
 		<name>force_trim_button</name>
 		<prereq>force_trim_enabled</prereq>
 		<info>Button # to hold to release spring while moving axis</info>
@@ -381,7 +395,7 @@
 	</defaults>
 	<defaults>
 		<Grouping>Basic</Grouping>
-		<order>140.5</order>
+		<order>140.6</order>
 		<name>force_trim_button</name>
 		<prereq>force_trim_enabled</prereq>
 		<info>Button # to hold to release spring while moving axis</info>
@@ -393,7 +407,7 @@
 	</defaults>
 	<defaults>
 		<Grouping>Basic</Grouping>
-		<order>140.6</order>
+		<order>140.7</order>
 		<name>force_trim_reset_button</name>
 		<prereq>force_trim_enabled</prereq>
 		<info>Button # to recenter spring trims</info>
@@ -405,7 +419,7 @@
 	</defaults>
 	<defaults>
 		<Grouping>Basic</Grouping>
-		<order>140.7</order>
+		<order>140.8</order>
 		<name>trim_release_spring_gain</name>
 		<prereq>force_trim_enabled</prereq>
 		<info>Spring gain while trim release is pressed&lt;br&gt;&lt;br&gt; Acts as dampening force when trim release is depressed</info>
@@ -442,29 +456,43 @@
 		<info>Trim Release Damper Gain</info>
 		<displayname>Trim Release Damper Gain</displayname>
 	</defaults>
-	<defaults><Grouping>Basic</Grouping><prereq>collective_ft_ovd_enabled</prereq><DCS>true</DCS><MSFS>true</MSFS><XPLANE>true</XPLANE><collective>true</collective><value>0</value><datatype>button</datatype>
+	<defaults>
+		<Grouping>Basic</Grouping>
 		<order>141.4</order>
+		<name>collective_ft_use_master_buttons</name>
+		<prereq>collective_ft_ovd_enabled</prereq>
+		<info>Use the button inputs from the master device (likely your joystick).  If disabled, feature will expect to receive inputs from collective (grip or  loopback app).</info>
+		<displayname>Use buttons from master device</displayname>
+		<DCS>true</DCS>
+		<MSFS>true</MSFS>
+		<XPLANE>true</XPLANE>
+		<collective>true</collective>
+		<value>false</value>
+		<datatype>bool</datatype>
+	</defaults>
+	<defaults><Grouping>Basic</Grouping><prereq>collective_ft_ovd_enabled</prereq><DCS>true</DCS><MSFS>true</MSFS><XPLANE>true</XPLANE><collective>true</collective><value>0</value><datatype>button</datatype>
+		<order>141.5</order>
 		<name>collective_ft_ovd_release</name>
 		<info>Trim Release Button</info>
 		<displayname>Trim Release Button</displayname>
 	</defaults>
 	<defaults><Grouping>Basic</Grouping><prereq>collective_ft_ovd_enabled</prereq><displayname>Trim Reset Button (full down)</displayname><DCS>true</DCS><MSFS>true</MSFS><XPLANE>true</XPLANE><collective>true</collective><value>0</value><datatype>button</datatype>
-		<order>141.5</order>
+		<order>141.6</order>
 		<name>collective_ft_ovd_reset</name>
 		<info>Trim Reset Button (full down)</info>
 	</defaults>
 	<defaults><Grouping>Basic</Grouping><prereq>collective_ft_ovd_enabled</prereq><DCS>true</DCS><MSFS>true</MSFS><XPLANE>true</XPLANE><collective>true</collective><value>0</value><datatype>button</datatype>
-		<order>141.6</order>
+		<order>141.7</order>
 		<name>collective_ft_ovd_trim_down</name>
 		<displayname>&lt;html&gt;&lt;body&gt;&lt;table cellpadding="0" cellspacing="0" border="0"&gt;&lt;tr&gt;&lt;td style="vertical-align: middle;"&gt;Trim&lt;/td&gt;&lt;td&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp;&lt;/td&gt;&lt;td style="font-size: 24px; vertical-align: middle; font-weight: bold;"&gt;&#x21E7;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/body&gt;&lt;/html&gt;</displayname>
 	</defaults>
 	<defaults><Grouping>Basic</Grouping><prereq>collective_ft_ovd_enabled</prereq><DCS>true</DCS><MSFS>true</MSFS><XPLANE>true</XPLANE><collective>true</collective><value>0</value><datatype>button</datatype>
-		<order>141.7</order>
+		<order>141.8</order>
 		<name>collective_ft_ovd_trim_up</name>
 		<displayname>&lt;html&gt;&lt;body&gt;&lt;table cellpadding="0" cellspacing="0" border="0"&gt;&lt;tr&gt;&lt;td style="vertical-align: middle;"&gt;Trim&lt;/td&gt;&lt;td&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp;&lt;/td&gt;&lt;td style="font-size: 24px; vertical-align: middle; font-weight: bold;"&gt;&#x21E9;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/body&gt;&lt;/html&gt;</displayname>
 	</defaults>
 	<defaults><Grouping>Basic</Grouping><prereq>collective_ft_ovd_enabled</prereq><info>Affects rate at which trim will move when button held</info><DCS>true</DCS><MSFS>true</MSFS><XPLANE>true</XPLANE><collective>true</collective><sliderfactor>1</sliderfactor><validvalues>0,1000</validvalues><value>200</value><datatype>d_int</datatype>
-		<order>141.8</order>
+		<order>141.9</order>
 		<name>collective_ft_ovd_trim_rate</name>
 		<displayname>Trim Slew Rate</displayname>
 	</defaults>
