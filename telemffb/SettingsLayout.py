@@ -33,7 +33,7 @@ from telemffb.ButtonPressThread import ButtonPressThread
 from telemffb.custom_widgets import (InfoLabel, NoWheelSlider, NoWheelNumberSlider, vpf_purple, t_purple, Toggle, AnimatedToggle)
 from telemffb.ConfiguratorDialog import ConfiguratorDialog
 from telemffb.hw.ffb_rhino import HapticEffect
-from telemffb.utils import validate_vpconf_profile, dbprint
+from telemffb.utils import validate_vpconf_profile, dbprint, HiDpiPixmap
 
 from . import globals as G
 from . import xmlutils
@@ -743,9 +743,9 @@ class SettingsLayout(QGridLayout):
 
         # erase_button = QToolButton()
         icon = QIcon()
-        pixmap = QPixmap(":/image/delete_button.png")
-        resized_pixmap = pixmap.scaled(15, 15, Qt.KeepAspectRatio, Qt.SmoothTransformation)
-        icon.addPixmap(resized_pixmap)
+        pixmap = HiDpiPixmap(":/image/delete_button.png")
+        #pixmap = pixmap.scaled(15, 15, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+        icon.addPixmap(pixmap)
 
         # Create the erase button
 
@@ -753,7 +753,7 @@ class SettingsLayout(QGridLayout):
         erase_button.setMaximumSize(25, 25)
         erase_button.setMinimumSize(25, 25)
         erase_button.setIcon(icon)
-        erase_button.setIconSize(resized_pixmap.rect().size())
+        #erase_button.setIconSize(pixmap.rect().size())
         erase_button.setToolTip("")
         erase_button.clicked.connect(lambda _, name=item['name']: self.erase_setting(name))
         self.addWidget(erase_button, i, erase_col)
