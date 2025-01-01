@@ -265,6 +265,8 @@ class AircraftBase(object):
     collective_ft_ovd_trim_down = 0
     collective_ft_ovd_trim_up = 0
     collective_ft_ovd_cp0_y = 4096
+    collective_ft_use_master_buttons: bool = False
+
 
     last_device_x = None
     last_device_y = None
@@ -1549,6 +1551,19 @@ class AircraftBase(object):
     def check_master_button_press(self, button):
         # print(f"Checking {button} against {master_buttons}")
         return button in G.master_buttons
+    def check_for_button_press(self, button):
+        input_data = HapticEffect.device.get_input()
+
+    def check_button_press(self, button=0, check_master=False):
+        if not button:
+            #button not set
+            return False
+        if check_master:
+            return self.check_master_button_press(button)
+        else:
+            input_data = HapticEffect.device.get_input()
+            return input_data.isButtonPressed(button)
+
 
     def _update_pedal_force_trim(self, telem_data):
         if not self.is_pedals(): return

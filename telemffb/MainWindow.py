@@ -34,7 +34,7 @@ from datetime import datetime
 from PyQt5 import QtCore, QtWidgets
 from PyQt5.QtCore import QCoreApplication, Qt, QTimer, QUrl
 from PyQt5.QtGui import (QColor, QCursor, QDesktopServices, QIcon,
-                         QKeySequence, QPixmap)
+                         QKeySequence, QPixmap, QFontMetrics)
 from PyQt5.QtWidgets import (QAction, QApplication, QButtonGroup, QCheckBox,
                              QComboBox, QFrame, QGridLayout, QGroupBox,
                              QHBoxLayout, QLabel, QMainWindow, QMessageBox,
@@ -520,16 +520,7 @@ class MainWindow(QMainWindow):
 
         # Set the main window area height to 0
         # self.tab_widget.setMinimumHeight(14)
-        style_sheet = """
-        QTabBar::tab:selected {
-            background-color: qlineargradient(x1:0, y1:0, x2:1, y2:1,
-                                  stop: 0 #dca3f2, stop: 0.2 #c174e6,
-                                  stop: 0.5 #a13fb1, stop: 0.8 #822c94, stop: 1.0 #6b2378);
-;
-            color: white;
-        }
-        """
-        self.tab_widget.setStyleSheet(style_sheet)
+
 
         # Create a horizontal line widget
         self.line_widget = QFrame(self)
@@ -614,6 +605,23 @@ class MainWindow(QMainWindow):
 
         self.tab_widget.addTab(QWidget(), "Hide")
         self.tab_widget.currentChanged.connect(self.switch_window_view)
+        tab_bar = self.tab_widget.tabBar()
+        fm = QFontMetrics(tab_bar.font())
+        ht = fm.height()
+        tb_height = ht + 8
+        style_sheet = f"""
+        QTabBar::tab {{
+            height: {tb_height}px;
+        }}
+        QTabBar::tab:selected {{
+            background-color: qlineargradient(x1:0, y1:0, x2:1, y2:1,
+                                  stop: 0 #dca3f2, stop: 0.2 #c174e6,
+                                  stop: 0.5 #a13fb1, stop: 0.8 #822c94, stop: 1.0 #6b2378);
+            color: white;
+        }}
+    """
+        self.tab_widget.setStyleSheet(style_sheet)
+
         tb_height = self.tab_widget.tabBar().sizeHint().height()
         self.tab_widget.setMinimumHeight(tb_height)
 
