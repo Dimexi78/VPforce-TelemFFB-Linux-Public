@@ -486,7 +486,7 @@ class SimConnectManager(threading.Thread):
                             # dbprint("red", "**DEBUG*** Exception parsing SC FRAME")
                             continue
 
-                    avatar = data.get("_IN AVATAR", False) # in 2024, see if user is controlling avatar
+                    avatar = data.get("_IS AVATAR", False) # in 2024, see if user is controlling avatar
                     rtc = data.get("_IS IN RTC", False) # check if 2024 sim is running realtime cinematic (cut scene)
 
                     if self._sim_paused or data.get("Parked", 0) or data.get("Slew", 0) or avatar or rtc:
