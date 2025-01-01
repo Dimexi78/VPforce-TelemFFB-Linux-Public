@@ -155,7 +155,6 @@ class SimConnectManager(threading.Thread):
         SimVarArray("AileronDeflPctLR", "AILERON <> DEFLECTION PCT", keywords=("LEFT", "RIGHT"), unit="Percent Over 100"),
         SimVar("AileronTrim", "AILERON TRIM", "degrees"),
         SimVar("AileronTrimPct", "AILERON TRIM PCT", "Percent Over 100"),
-        SimVar("PropThrust1", "PROP THRUST:1", "kilograms", scale=10), #scaled to newtons
         SimVarArray("PropThrust", "PROP THRUST", "kilograms", min=1, max=4, scale=10),#scaled to newtons
         SimVarArray("PropRPM", "PROP RPM", "RPM", min=1, max=4),
         SimVar("RotorRPM", "ROTOR RPM:1", "RPM"),
@@ -169,11 +168,7 @@ class SimConnectManager(threading.Thread):
         SimVar("CyclicTrimX", "ROTOR LATERAL TRIM PCT", "Percent Over 100"),
         SimVar("CyclicTrimY", "ROTOR LONGITUDINAL TRIM PCT", "Percent Over 100"),
         SimVar("Heading", "PLANE HEADING DEGREES TRUE", "degrees"),
-        SimVar("PitchRate", "ROTATION VELOCITY BODY X", "degrees per second"), # todo replace usage with VelRotBody array
-        SimVar("RollRate", "ROTATION VELOCITY BODY Z", "degrees per second"), # todo replace usage with VelRotBody array
         SimVarArray("VelRotBody", "ROTATION VELOCITY BODY <>", "degrees per second", keywords=("X", "Y", "Z")),
-        SimVar("PitchAccel", "ROTATION ACCELERATION BODY X", "degrees per second squared"), # todo replace usage with AccRotBody array
-        SimVar("RollAccel", "ROTATION ACCELERATION BODY Z", "degrees per second squared"), # todo replace usage with AccRotBody array
         SimVarArray("AccRotBody", "ROTATION ACCELERATION BODY <>", "degrees per second squared", keywords=("X", "Y", "Z")),
         SimVarArray("DesignSpeed", "DESIGN SPEED <>", "meter/second", keywords=("VC", "VS0", "VS1")),
         SimVar("VerticalSpeed", "VERTICAL SPEED", "meter/second"),
