@@ -56,7 +56,7 @@ from telemffb.sim.aircraft_base import effects
 from telemffb.telem.SimTelemListener import SimTelemListener
 from telemffb.SystemSettingsDialog import SystemSettingsDialog
 from telemffb.TeleplotSetupDialog import TeleplotSetupDialog
-from telemffb.utils import exit_application, overrides
+from telemffb.utils import exit_application, overrides, HiDpiPixmap
 
 class MainWindow(QMainWindow):
     
@@ -329,16 +329,19 @@ class MainWindow(QMainWindow):
         self.vpflogo_label = QLabel(self.logo_stack)
         self.devicetype_label = ClickLogo(self.logo_stack)
         self.devicetype_label.clicked.connect(self.device_logo_click_event)
-        pixmap = QPixmap(":/image/vpforcelogo.png")
-        pixmap2 = QPixmap(utils.get_device_logo(G.device_type))
-        
+        pixmap = HiDpiPixmap(":/image/vpforcelogo.png")
+        pixmap = pixmap._scaled(271, 115, aspectRatioMode=QtCore.Qt.KeepAspectRatio, transformMode=QtCore.Qt.SmoothTransformation)
+
+        pixmap2 = HiDpiPixmap(utils.get_device_logo(G.device_type))
+        pixmap2 = pixmap2._scaled(round(pixmap2.width()), round(pixmap2.height()))
+
         self.vpflogo_label.setPixmap(pixmap)
         self.devicetype_label.setPixmap(pixmap2)
         self.devicetype_label.setScaledContents(True)
 
         # Resize QGroupBox to match the size of the larger label
-        max_width = pixmap.width()
-        max_height = pixmap.height()
+        max_width = round(pixmap.width() / pixmap.devicePixelRatioF())
+        max_height = round(pixmap.height() / pixmap.devicePixelRatioF())
         self.logo_stack.setFixedSize(max_width, max_height)
         self.logo_stack.setStyleSheet("QGroupBox { border: none; }")
         # Align self.image_label2 with the upper left corner of self.image_label
@@ -1099,9 +1102,9 @@ class MainWindow(QMainWindow):
         xmlutils.update_vars(types[arg], G.userconfig_path, G.defaults_path)
         G.current_device_config_scope = types[arg]
 
-        pixmap = QPixmap(utils.get_device_logo(G.current_device_config_scope))
+        pixmap = HiDpiPixmap(utils.get_device_logo(G.current_device_config_scope))
         self.devicetype_label.setPixmap(pixmap)
-        self.devicetype_label.setFixedSize(pixmap.width(), pixmap.height())
+        #self.devicetype_label.setFixedSize(pixmap.width(), pixmap.height())
 
         if G.master_instance:
             self.effect_lbl.setText(f'Active Effects for: {G.current_device_config_scope}')

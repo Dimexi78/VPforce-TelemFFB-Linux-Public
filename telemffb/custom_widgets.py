@@ -117,7 +117,7 @@ class NoWheelSlider(QSlider):
         self._timer.timeout.connect(self._emitDelayedValueChanged)
         self.valueChanged.connect(self._startTimer)
 
-        self.setMinimumHeight(int(self.handle_height * self.devicePixelRatioF()) + 10)
+        self.setMinimumHeight(int(self.handle_height ) + 10)
     def _startTimer(self):
         self._timer.start(self._delay)
 
@@ -146,7 +146,7 @@ class NoWheelSlider(QSlider):
         css = f"""
             QSlider::groove:horizontal {{
                 border: 1px solid #565a5e;
-                height: {int(8 * self.devicePixelRatioF())}px;  /* Adjusted groove height */
+                height: 8px;  /* Adjusted groove height */
                 background: qlineargradient(
                     x1: 0, y1: 0, x2: 0, y2: 1,
                     stop: 0 #e6e6e6, stop: 1 #bfbfbf
@@ -162,11 +162,11 @@ class NoWheelSlider(QSlider):
                     stop: 1.0 {QColor(self.handle_color).darker().name()}
                 );
                 border: 1px solid #565a5e;
-                width: {int(self.handle_width * self.devicePixelRatioF())}px;  /* Adjusted handle width */
-                height: {int(self.handle_height * self.devicePixelRatioF())}px;  /* Adjusted handle height */
-                border-radius: {int(self.handle_height / 4 * self.devicePixelRatioF())}px;  /* Adjusted border radius */
-                margin-top: -{int(self.handle_height / 4 * self.devicePixelRatioF())}px;  /* Negative margin to overlap with groove */
-                margin-bottom: -{int(self.handle_height / 4 * self.devicePixelRatioF())}px;  /* Negative margin to overlap with groove */
+                width: {int(self.handle_width)}px;  /* Adjusted handle width */
+                height: {int(self.handle_height)}px;  /* Adjusted handle height */
+                border-radius: {int(self.handle_height / 4 )}px;  /* Adjusted border radius */
+                margin-top: -{int(self.handle_height / 4 )}px;  /* Negative margin to overlap with groove */
+                margin-bottom: -{int(self.handle_height / 4 )}px;  /* Negative margin to overlap with groove */
                 margin-left: -1px;  /* Adjusted left margin */
                 margin-right: -1px;  /* Adjusted right margin */
             }}
@@ -311,7 +311,7 @@ class InfoLabel(QWidget):
         # icon_img = os.path.join(script_dir, "image/information.png")
         icon_img = ":/image/information.png"
         self.pixmap = HiDpiPixmap(icon_img)
-        self.icon_label.setPixmap(self.pixmap.scaled(12, 12, Qt.KeepAspectRatio, Qt.SmoothTransformation))  # Adjust the height as needed
+        self.icon_label.setPixmap(self.pixmap._scaled(12, 12, Qt.KeepAspectRatio, Qt.SmoothTransformation))  # Adjust the height as needed
         self.icon_label.setVisible(False)
 
         # Layout to align the text label and icon
@@ -546,7 +546,7 @@ class SimStatusLabel(QWidget):
             self.setToolTip("Sim is disabled")
 
     def create_status_icon(self, color, size: QSize, icon_type="colored"):
-        pixmap = QPixmap(size)
+        pixmap = HiDpiPixmap(size)
         pixmap.fill(Qt.transparent)
 
         painter = QPainter(pixmap)
@@ -596,9 +596,9 @@ class SimStatusLabel(QWidget):
 
         # Draw the colored dot
         dot_gradient = QRadialGradient(size.width() / 3, size.height() / 3, size.width() / 2)
-        dot_gradient.setColorAt(0, color.lighter(180))  # Increase lightness for stronger highlight
+        dot_gradient.setColorAt(0, color)  # Increase lightness for stronger highlight
         dot_gradient.setColorAt(0.35, color)  # Base color in the middle
-        dot_gradient.setColorAt(1, color.darker(200))  # Increase darkness for stronger shadow
+        dot_gradient.setColorAt(1, color)  # Increase darkness for stronger shadow
 
         painter.setBrush(dot_gradient)
         painter.setPen(Qt.NoPen)

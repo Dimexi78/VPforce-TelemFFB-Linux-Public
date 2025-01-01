@@ -36,7 +36,7 @@ import subprocess
 import traceback
 from datetime import datetime
 
-from PyQt5 import QtCore, QtWidgets
+from PyQt5 import QtCore, QtWidgets, QtGui
 from PyQt5.QtCore import QCoreApplication
 from PyQt5.QtWidgets import QApplication, QMessageBox, QPlainTextEdit
 
@@ -103,6 +103,14 @@ def main():
 
     app = QApplication(sys.argv)
     app.setStyle('Fusion')  # Set Fusion style
+
+    # Create and set custom palette with accent color
+    palette = app.palette()
+    accent_color = QtGui.QColor('#9430ad')
+    palette.setColor(palette.Highlight, accent_color)
+    palette.setColor(palette.HighlightedText, QtGui.QColor('white'))
+    palette.setColor(palette.Link, accent_color)
+    app.setPalette(palette)
 
     G.args = CmdLineArgs.parse()
 
@@ -240,9 +248,9 @@ def main():
 
     app.setStyleSheet(
         """
-        QCheckBox::indicator:checked { image: url(:/image/purplecheckbox.png); }
+        /*QCheckBox::indicator:checked { image: url(:/image/purplecheckbox.png); }
         QCheckBox::indicator:checked:disabled {image: url(:/image/disabledcheckbox.png); }
-        QRadioButton::indicator:checked { image: url(:/image/rchecked.png);}
+        QRadioButton::indicator:checked { image: url(:/image/rchecked.png);}*/
 
         QPushButton:!pressed, #styledButton:!pressed {
             background-color: qlineargradient(x1:0, y1:0, x2:1, y2:1,
@@ -291,6 +299,7 @@ def main():
 
         }
 
+        /*
         QComboBox::down-arrow {
             image: url(:/image/down-down.png);
         }
@@ -299,7 +308,7 @@ def main():
             border: 2px solid darkgray;
             selection-background-color: #ab37c8;
         }
-
+*/
         QLineEdit {
             selection-background-color: #ab37c8;  /* Set the highlight color for selected text */
         }

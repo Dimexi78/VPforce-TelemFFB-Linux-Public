@@ -1996,3 +1996,9 @@ class HiDpiPixmap(QPixmap):
             super().__init__()
 
         self.setDevicePixelRatio(ratio)
+
+    def _scaled(self, width, height, aspectRatioMode=QtCore.Qt.KeepAspectRatio, transformMode=QtCore.Qt.SmoothTransformation):
+        ratio = self.devicePixelRatio()
+        scaled_pixmap = super().scaled(int(width * ratio), int(height * ratio), aspectRatioMode, transformMode)
+        scaled_pixmap.setDevicePixelRatio(ratio)
+        return scaled_pixmap
