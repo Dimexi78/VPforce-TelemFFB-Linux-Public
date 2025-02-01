@@ -37,6 +37,7 @@ class Ui_LauncherWindow(object):
         self.label = QtWidgets.QLabel(self.centralwidget)
         self.label.setObjectName("label")
         self.formLayout_2.setWidget(0, QtWidgets.QFormLayout.LabelRole, self.label)
+
         self.tb_joystick = QtWidgets.QLineEdit(self.centralwidget)
         self.tb_joystick.setObjectName("tb_joystick")
         self.formLayout_2.setWidget(0, QtWidgets.QFormLayout.FieldRole, self.tb_joystick)
@@ -46,12 +47,21 @@ class Ui_LauncherWindow(object):
         self.tb_pedals = QtWidgets.QLineEdit(self.centralwidget)
         self.tb_pedals.setObjectName("tb_pedals")
         self.formLayout_2.setWidget(1, QtWidgets.QFormLayout.FieldRole, self.tb_pedals)
+
         self.cb_collective = QtWidgets.QCheckBox(self.centralwidget)
         self.cb_collective.setObjectName("cb_collective")
         self.formLayout_2.setWidget(2, QtWidgets.QFormLayout.LabelRole, self.cb_collective)
         self.tb_collective = QtWidgets.QLineEdit(self.centralwidget)
         self.tb_collective.setObjectName("tb_collective")
         self.formLayout_2.setWidget(2, QtWidgets.QFormLayout.FieldRole, self.tb_collective)
+
+        self.cb_trimwheel = QtWidgets.QCheckBox(self.centralwidget)
+        self.cb_trimwheel.setObjectName("cb_trimwheel")
+        self.formLayout_2.setWidget(2, QtWidgets.QFormLayout.LabelRole, self.cb_trimwheel)
+        self.tb_trimwheel = QtWidgets.QLineEdit(self.centralwidget)
+        self.tb_trimwheel.setObjectName("tb_trimwheel")
+        self.formLayout_2.setWidget(2, QtWidgets.QFormLayout.FieldRole, self.tb_trimwheel)
+
         self.verticalLayout.addLayout(self.formLayout_2)
         self.label_2 = QtWidgets.QLabel(self.centralwidget)
         self.label_2.setObjectName("label_2")
