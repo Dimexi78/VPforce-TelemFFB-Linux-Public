@@ -1,0 +1,1 @@
+pyuic6 sc_overrides.ui -o ../telemffb/ui/Ui_SCOverridesDialog.py
