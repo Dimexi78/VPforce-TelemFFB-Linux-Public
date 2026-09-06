@@ -750,6 +750,57 @@ class TestHelicopterCyclicControls(BaseTelemetryEffectTestCase):
         event_names = [event[0] for event in self.mock_simconnect.sent_events]
         assert any('CYCLIC' in name for name in event_names)
     
+    def test_cyclic_force_trim_unbound_button_still_sends_position(self):
+        """Force trim with no bound button degrades to no-spring, not a dead update."""
+        instance = self.create_aircraft_instance(Helicopter, name="TestHeli", _test_sim_is_msfs=True, _test_device_type="joystick")
+        instance.telemffb_controls_axes = True
+        instance.spring_mode = SpringModeEnum.FORCETRIM
+        instance.force_trim_button = 0
+        instance.cyclic_spring_gain = 0.9
+
+        telem = self._create_heli_telem()
+        self.set_telemetry(instance, telem)
+
+        self.mock_device._input_data.set_axis(x=0.3, y=-0.2)
+
+        instance.msfs_update_heli_controls(telem)
+
+        event_names = [event[0] for event in self.mock_simconnect.sent_events]
+        assert any('CYCLIC' in name for name in event_names)
+
+        assert instance.spring_x.positiveCoefficient == 0
+        assert instance.spring_y.positiveCoefficient == 0
+
+        assert instance.telem_data.get('error')
+
+    def test_cyclic_force_trim_recovers_when_button_rebound(self):
+        """Unbinding the release button live and re-binding it restores the spring."""
+        instance = self.create_aircraft_instance(Helicopter, name="TestHeli", _test_sim_is_msfs=True, _test_device_type="joystick")
+        instance.telemffb_controls_axes = True
+        instance.spring_mode = SpringModeEnum.FORCETRIM
+        instance.force_trim_button = 1
+        instance.cyclic_spring_gain = 0.9
+
+        self.mock_device._input_data.set_axis(x=0.1, y=0.05)
+
+        def run_frames():
+            for _ in range(3):
+                telem = self._create_heli_telem()
+                self.set_telemetry(instance, telem)
+                instance.msfs_update_heli_controls(telem)
+
+        run_frames()
+        assert instance.spring_x.positiveCoefficient > 0
+
+        instance.force_trim_button = 0
+        run_frames()
+        assert instance.spring_x.positiveCoefficient == 0
+
+        instance.force_trim_button = 1
+        run_frames()
+        assert instance.spring_x.positiveCoefficient > 0
+        assert instance.spring_y.positiveCoefficient > 0
+
     def test_cyclic_force_trim_disabled_by_switch(self):
         """Test force trim can be disabled by cockpit switch."""
         instance = self.create_aircraft_instance(Helicopter, name="TestHeli")
@@ -926,7 +977,7 @@ class TestCyclicSubMethods(BaseTelemetryEffectTestCase):
 
     # --- _update_cyclic_force_trim tests ---
 
-    def test_force_trim_returns_true_when_no_button_configured(self):
+    def test_force_trim_degrades_to_no_spring_when_no_button_configured(self):
         inst = self._make_instance()
         inst.force_trim_button = 0
         inst.cyclic_spring_init = 1
@@ -936,7 +987,10 @@ class TestCyclicSubMethods(BaseTelemetryEffectTestCase):
 
         result = inst._update_cyclic_force_trim(telem, input_data, 0.0, 0.0, True)
 
-        assert result is True
+        assert result is False
+        assert inst.spring_x.positiveCoefficient == 0
+        assert inst.spring_y.positiveCoefficient == 0
+        assert inst.telem_data.get('error')
 
     def test_force_trim_returns_true_during_init(self):
         inst = self._make_instance()

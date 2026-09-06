@@ -37,6 +37,15 @@ class MsfsXpHeliControlsMixIn(MsfsXpFlightControlsMixIn):
             self._simconnect.add_simvar(name="ForceTrimSW", var=self.custom_ft_sw_var, sc_unit="enum")
             self._simconnect._resubscribe()
 
+    def _force_trim_configured(self) -> bool:
+        """True when force-trim mode is selected AND a release button is bound.
+
+        Force trim without a bound button has no way to set a center, so every
+        caller must treat it as not-force-trim and fall back to the no-spring
+        path rather than abandoning the control update.
+        """
+        return self.spring_mode_is(SpringModeEnum.FORCETRIM) and self.force_trim_button != 0
+
     def _initialize_cyclic_if_needed(self, telem_data: BaseTelemetryData) -> bool:
         """Initialize cyclic spring to ground-center or last-saved position.
 
@@ -118,14 +127,13 @@ class MsfsXpHeliControlsMixIn(MsfsXpFlightControlsMixIn):
     def _update_cyclic_force_trim(self, telem_data: BaseTelemetryData, input_data, x, y, force_trim_active) -> bool:
         """Run the cyclic force-trim state machine.
 
-        Returns True if the caller should return early (init in progress or error),
+        Returns True if the caller should return early (init in progress),
         False otherwise.
         """
-        if self.spring_mode_is(SpringModeEnum.FORCETRIM) and force_trim_active:
+        if self.spring_mode_is(SpringModeEnum.FORCETRIM) and not self._force_trim_configured():
+            self.flag_error("Force trim enabled but buttons not configured")
 
-            if self.force_trim_button == 0:
-                self.flag_error("Force trim enabled but buttons not configured")
-                return True
+        if self._force_trim_configured() and force_trim_active:
             # A missing/hot-unplugged device (input_data is None) reads
             # as "no button pressed", so no trim action can fire.
             if self.cyclic_spring_init and input_data is not None:
@@ -215,7 +223,7 @@ class MsfsXpHeliControlsMixIn(MsfsXpFlightControlsMixIn):
             telem_data.StickXY = [x, y]
             telem_data.StickXY_offset = self.cyclic_center
 
-        elif self.spring_mode_is(SpringModeEnum.FORCETRIM) and not force_trim_active:
+        elif self._force_trim_configured() and not force_trim_active:
             self.ft_was_inactive = True
 
             gain = int(self.trim_release_spring_gain * 4096)
@@ -231,6 +239,12 @@ class MsfsXpHeliControlsMixIn(MsfsXpFlightControlsMixIn):
             self.cyclic_center = [x, y]
 
         else:
+            # The active-force-trim branch only restores the gain when coming
+            # back from an inactive state, so re-arm that latch here: without
+            # it, leaving force trim (mode switch, or the release button
+            # unbound mid-flight) and returning leaves the spring at zero
+            # until a telemetry timeout resets the init flag.
+            self.ft_was_inactive = True
             self.spring_x.set_coefficient(0)
             self.spring_y.set_coefficient(0)
             self._spring_handle.setCondition(self.spring_x)
@@ -265,7 +279,7 @@ class MsfsXpHeliControlsMixIn(MsfsXpFlightControlsMixIn):
             pos_y_pos = y_pos * y_scale
             self.send_xp_command(f"AXIS:jx={round(pos_x_pos, 5)},jy={round(pos_y_pos, 5)}")
 
-        if self.cyclic_spring_init or not (self.spring_mode_is(SpringModeEnum.FORCETRIM) and force_trim_active):
+        if self.cyclic_spring_init or not (self._force_trim_configured() and force_trim_active):
             if self._sim_is_msfs():
                 x_var, x_range = self._get_msfs_axis_config('x', "AXIS_CYCLIC_LATERAL_SET")
                 y_var, y_range = self._get_msfs_axis_config('y', "AXIS_CYCLIC_LONGITUDINAL_SET")
@@ -347,7 +361,7 @@ class MsfsXpHeliControlsMixIn(MsfsXpFlightControlsMixIn):
             self.spring_y.set_offset(self.cpO_y + self.cyclic_physical_trim_y_offs)
             self._spring_handle.setCondition(self.spring_x)
             self._spring_handle.setCondition(self.spring_y)
-            if self.spring_mode_is(SpringModeEnum.FORCETRIM) and force_trim_active:
+            if self._force_trim_configured() and force_trim_active:
                 if not self._spring_handle.started:
                     self._spring_handle.start()
 
