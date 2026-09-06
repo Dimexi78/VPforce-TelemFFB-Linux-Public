@@ -429,7 +429,7 @@ class Helicopter(Aircraft, MsfsXpHeliControlsMixIn):
     def msfs_update_collective(self, telem_data: BaseTelemetryData):
         if not self.is_collective():
             return
-        if not self.telemffb_controls_axes and not self.local_disable_axis_control:
+        if not self._axis_control_enabled():
             return
 
         y_var, y_range = self._get_msfs_collective_axis_config()

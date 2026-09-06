@@ -155,6 +155,22 @@ class TestHelicopterCollective(BaseTelemetryEffectTestCase):
         
         assert instance.collective_init == 0
     
+    def test_collective_honors_local_axis_control_disable(self):
+        """The per-device axis disable must stop collective axis output."""
+        instance = self.create_aircraft_instance(Helicopter, name="TestHeli", _test_sim_is_msfs=True, _test_device_type="collective")
+        instance.telemffb_controls_axes = True
+        instance.local_disable_axis_control = True
+        instance.collective_init = 1
+
+        telem = self._create_heli_telem()
+        self.set_telemetry(instance, telem)
+
+        self.mock_device._input_data.set_axis(x=0.0, y=0.4)
+
+        instance.msfs_update_collective(telem)
+
+        assert self.mock_simconnect.sent_events == []
+
     def test_collective_force_trim_flags_error_when_release_button_unbound(self):
         """FORCETRIM on the collective is unusable without a release button:
         the configuration error must be flagged."""
