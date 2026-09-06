@@ -22,25 +22,33 @@ body {
     flex-direction: column;
 }
 
+/* Flexbox 'gap' isn't reliably honored by Coherent GT - same class of gap as
+   Promise.finally / position:sticky above - so spacing throughout this file
+   is done with margins on '> * + *' (all but the first child) instead,
+   which works the same everywhere regardless of gap support. Verify any new
+   multi-child flex row this way too rather than reaching for gap. */
 #header {
     flex: 0 0 auto;
     display: flex;
     flex-direction: column;
-    gap: 4px;
     padding: 10px 18px;
     background: #1c1f26;
     border-bottom: 2px solid #6a2fb0;
+}
+#header > * + * {
+    margin-top: 4px;
 }
 #headerTop {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 10px;
 }
 #headerBrand {
     display: flex;
     align-items: center;
-    gap: 18px;
+}
+#headerBrand > * + * {
+    margin-left: 18px;
 }
 #headerLogo {
     height: 22px;
@@ -60,8 +68,10 @@ body {
 #scaleControl {
     display: flex;
     align-items: center;
-    gap: 2px;
     flex-shrink: 0;
+}
+#scaleControl > * + * {
+    margin-left: 2px;
 }
 .scaleBtn {
     width: 24px;
@@ -157,7 +167,6 @@ body.disconnected #settingsList { display: none; }
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 10px;
     padding: 6px 8px;
     border-bottom: 1px solid #22252c;
     min-height: 34px;
@@ -178,7 +187,9 @@ body.disconnected #settingsList { display: none; }
     flex: 0 0 auto;
     display: flex;
     align-items: center;
-    gap: 10px;
+}
+.rowControl > * + * {
+    margin-left: 14px;
 }
 
 /* Choice rows stack the pills under the label on their own row - with
@@ -187,7 +198,9 @@ body.disconnected #settingsList { display: none; }
 .row--choice {
     flex-direction: column;
     align-items: stretch;
-    gap: 4px;
+}
+.row--choice > * + * {
+    margin-top: 4px;
 }
 .row--indent {
     padding-left: calc(8px + 1ch);
@@ -232,11 +245,15 @@ body.disconnected #settingsList { display: none; }
 .choiceGroup {
     display: flex;
     flex-wrap: wrap;
-    gap: 6px;
     justify-content: flex-start;
     max-width: 100%;
 }
 .pill {
+    /* Wrapping needs spacing in both directions, which a '> * + *' margin
+       can't give cleanly - margin on every pill instead (right/bottom
+       matches the old 6px gap; the small trailing space at the group's own
+       right/bottom edge is an acceptable trade for working spacing). */
+    margin: 0 6px 6px 0;
     padding: 5px 12px;
     border-radius: 14px;
     border: 2px solid #444a58;
@@ -259,8 +276,10 @@ body.disconnected #settingsList { display: none; }
 .rangeControl {
     display: flex;
     align-items: center;
-    gap: 10px;
     min-width: 200px;
+}
+.rangeControl > * + * {
+    margin-left: 10px;
 }
 .sliderTrack {
     position: relative;

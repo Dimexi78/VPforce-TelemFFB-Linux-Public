@@ -393,20 +393,27 @@ function renderRange(item, row) {
         valueLabel.textContent = formatRangeValue(v, item.display, item.unit);
     }
 
-    function valueFromClientX(clientX) {
-        const rect = track.getBoundingClientRect();
-        const pct = rect.width ? clamp01((clientX - rect.left) / rect.width) : 0;
-        return snap(min + pct * (max - min));
-    }
-
     function commit() {
         markUpdating(row, apiPost(item.name, value, item.unit));
     }
 
+    // Driven by mouse movement *relative to where the drag started*, not by
+    // mapping clientX onto the track's absolute getBoundingClientRect()
+    // position. Coherent GT's CSS 'zoom' (used for the panel-wide scale
+    // control) doesn't seem to keep clientX and getBoundingClientRect() in
+    // the same coordinate space the way a real browser does - at a
+    // non-100% zoom level, that mismatch made every click resolve to
+    // ~100%. Relative movement only ever compares clientX against itself,
+    // so it can't be thrown off by that disagreement.
     let dragging = false;
+    let dragStartClientX = 0;
+    let dragStartValue = 0;
+    let dragTrackWidth = 0;
+
     function onMove(e) {
-        if (!dragging) return;
-        value = valueFromClientX(e.clientX);
+        if (!dragging || !dragTrackWidth) return;
+        const deltaPct = (e.clientX - dragStartClientX) / dragTrackWidth;
+        value = snap(dragStartValue + deltaPct * (max - min));
         paint(value);
     }
     function onUp() {
@@ -418,8 +425,9 @@ function renderRange(item, row) {
     }
     track.addEventListener("mousedown", (e) => {
         dragging = true;
-        value = valueFromClientX(e.clientX);
-        paint(value);
+        dragStartClientX = e.clientX;
+        dragStartValue = value;
+        dragTrackWidth = track.getBoundingClientRect().width || track.offsetWidth || 1;
         document.addEventListener("mousemove", onMove);
         document.addEventListener("mouseup", onUp);
         e.preventDefault();
