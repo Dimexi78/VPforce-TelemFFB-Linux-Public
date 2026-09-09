@@ -68,16 +68,24 @@ if _IS_WINDOWS:
 
 
 class NamedMutex:
-    """A named, system-wide Win32 mutex.
-
-    Raises :exc:`RuntimeError` at construction time on non-Windows platforms.
-    Note: importing this module does NOT fail on non-Windows — only
-    instantiating ``NamedMutex`` does, so ``FileLock`` remains usable.
-    """
+    """A process-wide lock, backed by ``flock`` on Linux."""
 
     def __init__(self, name: str, acquired: bool = False, timeout: Optional[float] = None) -> None:
         self.name = name
         self.acquired = acquired
+        self.handle = None
+        if not _IS_WINDOWS:
+            import fcntl
+            runtime_dir = os.environ.get("XDG_RUNTIME_DIR", "/tmp")
+            lock_dir = os.path.join(runtime_dir, "vpforce-telemffb")
+            os.makedirs(lock_dir, mode=0o700, exist_ok=True)
+            digest = hashlib.sha256(name.encode("utf-8")).hexdigest()
+            self._lock_path = os.path.join(lock_dir, f"{digest}.lock")
+            self._fcntl = fcntl
+            self.handle = os.open(self._lock_path, os.O_RDWR | os.O_CREAT, 0o600)
+            if acquired:
+                self.acquire(timeout=timeout)
+            return
         ret = _CreateMutex(None, False, name)  # type: ignore[possibly-undefined]
         if not ret:
             raise ctypes.WinError()
@@ -91,6 +99,18 @@ class NamedMutex:
         Returns ``True`` on success, ``False`` on timeout.
         Raises :exc:`OSError` on other errors.
         """
+        if not _IS_WINDOWS:
+            deadline = None if timeout is None else time.monotonic() + timeout
+            while True:
+                try:
+                    self._fcntl.flock(self.handle, self._fcntl.LOCK_EX | self._fcntl.LOCK_NB)
+                    self.acquired = True
+                    return True
+                except BlockingIOError:
+                    if deadline is not None and time.monotonic() >= deadline:
+                        self.acquired = False
+                        return False
+                    time.sleep(0.05)
         if timeout is None:
             timeout_ms = 0xFFFFFFFF  # INFINITE
         else:
@@ -107,6 +127,11 @@ class NamedMutex:
 
     def release(self) -> None:
         """Release an acquired mutex."""
+        if not _IS_WINDOWS:
+            if self.handle is not None:
+                self._fcntl.flock(self.handle, self._fcntl.LOCK_UN)
+            self.acquired = False
+            return
         ret = _ReleaseMutex(self.handle)  # type: ignore[possibly-undefined]
         if not ret:
             raise ctypes.WinError()
@@ -115,6 +140,12 @@ class NamedMutex:
     def close(self) -> None:
         """Close the mutex handle."""
         if self.handle is None:
+            return
+        if not _IS_WINDOWS:
+            if self.acquired:
+                self.release()
+            os.close(self.handle)
+            self.handle = None
             return
         ret = _CloseHandle(self.handle)  # type: ignore[possibly-undefined]
         if not ret:

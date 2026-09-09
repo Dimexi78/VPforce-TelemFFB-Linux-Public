@@ -1,5 +1,65 @@
 # VPforce TelemFFB
 
+> This fork is Linux-only, targeting Arch Linux / Omarchy, Wayland, and
+> VPforce Rhino/DIY HID hardware. It deliberately contains no Wine,
+> DirectInput, Registry, or Windows shared-memory runtime path.
+
+## Arch Linux / Omarchy quick start
+
+```bash
+sudo pacman -S --needed git python python-pyqt6 hidapi libusb
+git clone <this-fork-url> VPforce-TelemFFB
+cd VPforce-TelemFFB
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+python main.py
+```
+
+Qt 6 uses Wayland automatically under Hyprland. If a local Qt setup prefers
+X11, launch with `QT_QPA_PLATFORM=wayland python main.py`.
+
+The default Rhino USB id in this source tree is `ffff:2055`. Install the
+included udev rule, unplug/replug the device, then verify it is accessible as
+your normal user:
+
+```bash
+sudo install -Dm644 udev/99-vpforce-telemffb.rules /etc/udev/rules.d/99-vpforce-telemffb.rules
+sudo udevadm control --reload-rules
+sudo udevadm trigger
+lsusb -d ffff:2055
+```
+
+DIY firmware with a different product ID must use that exact id in a second
+udev-rule line. Do not run TelemFFB as root.
+
+Configuration is stored in `~/.config/VPForce-TelemFFB/`, application data in
+`~/.local/share/VPForce-TelemFFB/`, and logs/state in
+`~/.local/state/VPForce-TelemFFB/`.
+
+### Proton telemetry
+
+DCS's included Lua exporter already sends OS-independent UDP telemetry. Put
+`export/TelemFFB.lua` in the DCS Saved Games export chain inside the Wine/Proton
+prefix and enable DCS in TelemFFB; the native application listens on UDP 34380.
+The game and TelemFFB do not need to share a Wine prefix.
+
+Falcon BMS's original integration was a Win32 named shared-memory reader, so it
+cannot cross from Wine into this native process. This fork listens on UDP 34382
+when BMS is enabled. The included Wine-side forwarder sends the existing
+TelemFFB semicolon-delimited frame format to `127.0.0.1:34382`; run it from
+the Falcon BMS Wine prefix:
+
+```bash
+cd /path/to/VPforce-TelemFFB
+wine python.exe wine/bms_udp_forwarder.py --host 127.0.0.1 --port 34382
+```
+
+The Wine Python environment must contain this checkout's runtime dependencies.
+Start the forwarder before launching BMS, then enable BMS in the native
+TelemFFB settings. It reuses the upstream BMS shared-memory parser unchanged
+and forwards its already-normalized UDP frame bytes.
+
 TelemFFB is an open source, community-driven Python/Qt application that reads telemetry from a flight simulator and uses it to generate force feedback (FFB) effects. The goal is to make your stick more lively and increase immersion — not necessarily perfect realism.
 
 > **Full documentation:** https://docs.vpforce.eu/telemffb/
@@ -16,7 +76,7 @@ For sims **with** native FFB (DCS, IL-2, BMS), TelemFFB primarily adds supplemen
 
 For sims **without** native FFB (MSFS, X-Plane), TelemFFB handles the **entire** FFB implementation, including dynamic spring forces based on calculated aerodynamic pressure throughout the aircraft's speed envelope.
 
-## Quick Start
+## Legacy Windows quick start
 
 Download the latest release, extract the zip, and run the exe — no installer needed.
 
@@ -77,7 +137,9 @@ Multiple devices can be run simultaneously. TelemFFB will auto-launch child inst
 
 ## Configuration
 
-TelemFFB 2.0 uses a delta-based XML configuration model. Only settings you've changed from defaults are saved, and these are stored in `%LOCALAPPDATA%\VPForce-TelemFFB`. System settings are stored in the Windows registry under `HKEY_CURRENT_USER\Software\VPforce\TelemFFB`.
+TelemFFB 2.0 uses a delta-based XML configuration model. Only settings changed
+from defaults are saved in `~/.config/VPForce-TelemFFB/`; system settings are
+stored beside them in `settings.ini`, not in a Registry.
 
 Settings can be modified in real time from the Settings tab while flying. Changes take effect almost immediately.
 
@@ -96,13 +158,14 @@ TelemFFB is packaged with PyInstaller, which can trigger false positives in Wind
 **Steps:**
 
 ```bash
-git clone https://github.com/walmis/VPforce-TelemFFB.git
-cd VPforce-TelemFFB
+python -m venv .venv
+source .venv/bin/activate
 pip install -r requirements.txt
 python main.py
 ```
 
-On first run for DCS, TelemFFB will offer to install the required `export.lua` script into your `Saved Games/DCS` folder. For X-Plane, the telemetry plugin is installed automatically when X-Plane is enabled in settings.
+For DCS under Proton, install the Lua exporter manually as described in the
+Arch Linux section.
 
 **Updating from source:**
 ```bash

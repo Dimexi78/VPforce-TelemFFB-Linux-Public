@@ -81,8 +81,8 @@ from telemffb.telem.TelemManager import TelemManager
 from telemffb.utils import (AnsiColors, LoggingFilter, exit_application,
                             upload_vpconf_profile)
 from telemffb.namedmutex import NamedMutex
+from telemffb.paths import config_dir, state_dir
 import telemffb.api_server as api_server
-import telemffb.telem.DcsSettingsChannel as dcs_settings
 import styles
 resources # used
 mutex = None
@@ -182,7 +182,7 @@ def _check_master_instance_mutex():
         if not mutex.acquired:
             msg_box.exec()
             sys.exit(1)
-    except WindowsError:
+    except OSError:
         msg_box.exec()
         sys.exit(1)
 
@@ -234,33 +234,10 @@ def _setup_device_configuration():
     assert isinstance(G.device_usbpid, str), "Device USB PID must be a string"
 
 def _check_directinput_support():
-    """Turn DirectInput support off if the bridge DLL is not usable.
-
-    The DLL is distributed separately from TelemFFB, so an install can lose
-    it - to an update, a move, or a beta build reaching its expiry. Leaving
-    the setting on would list no devices and explain nothing, and any
-    instance already assigned a [DI] device would fail to connect with no
-    obvious cause. Better to switch it off and say why.
-    """
-    if G.child_instance:
-        # one report per launch: the master owns the setting, and four
-        # instances each raising the same dialog helps nobody
-        return
-    if not G.system_settings.get('enableDirectInput', False):
-        return
-    from telemffb.hw.ffb_dinput import bridge_availability
-    available, reason = bridge_availability()
-    if available:
-        return
-
-    G.system_settings.setValue('enableDirectInput', False)
-    logging.error(f"DirectInput support disabled: {reason.splitlines()[0]}")
-    QMessageBox.warning(
-        None, "DirectInput Support Disabled",
-        "DirectInput support was enabled, but has been automatically turned off.\n\n"
-        + reason
-        + "\n\nAny instance assigned a [DI] device will not connect until "
-        "this is resolved and the setting is re-enabled in System Settings.")
+    """Discard a legacy DirectInput preference from Windows installations."""
+    if G.system_settings.get('enableDirectInput', False):
+        G.system_settings.setValue('enableDirectInput', False)
+        logging.info("Ignoring legacy DirectInput setting in the Linux build")
 
 
 def _setup_theme_and_styling(app):
@@ -421,7 +398,7 @@ def _backup_userconfig_for_beta():
 
 def _setup_dev_userconfig_paths():
     """Setup development userconfig paths."""
-    real_userconfig_path = os.path.join(os.environ['LOCALAPPDATA'], "VPForce-TelemFFB")
+    real_userconfig_path = str(config_dir())
     real_userconfig = os.path.join(real_userconfig_path, 'userconfig_v2.xml')
     real_legacy_userconfig = os.path.join(real_userconfig_path, 'userconfig.xml')
 
@@ -440,7 +417,7 @@ def _setup_dev_userconfig_paths():
 
 def _setup_standard_config_paths():
     """Setup standard configuration paths."""
-    G.userconfig_rootpath = os.path.join(os.environ['LOCALAPPDATA'], "VPForce-TelemFFB")
+    G.userconfig_rootpath = str(config_dir())
     G.userconfig_path = os.path.join(G.userconfig_rootpath, 'userconfig_v2.xml')
 
 def _device_is_configured() -> bool:
@@ -534,7 +511,7 @@ def _open_device_and_derive(min_firmware_version='v1.0.18', show_error=True):
     """Open the device named by the identity globals and derive the rest.
 
     The shared core of startup and the live device switch: opens by
-    G.device_di_guid / G.device_usbpid, wires the device signals to the
+    G.device_usbpid, wires the device signals to the
     main window, and fills every G.device_* value that describes the open
     device.  Returns (device, serial, firmware_version); device is None
     when the open fails - with the connection-error dialog shown unless
@@ -544,23 +521,18 @@ def _open_device_and_derive(min_firmware_version='v1.0.18', show_error=True):
     dev_serial = None
     dev_firmware_version = 'ERROR'
     try:
-        if G.device_di_guid:
-            dev = HapticEffect.open_dinput(G.device_di_guid)
-        else:
-            # By exact path when one is known - a PID-only open cannot
+        # By exact path when one is known - a PID-only open cannot
             # tell identical devices apart (two of the same side stick).
             # A stale path (device moved to another USB port) falls back
             # to the PID open that was always used, so port moves keep
             # working the way they did.
-            dev = None
-            if G.device_devpath:
-                try:
-                    dev = HapticEffect.open(pid=int(G.device_usbpid, 16),
-                                            path=str(G.device_devpath))
-                except Exception:
-                    logging.info(
-                        "Open by stored device path failed; falling back "
-                        f"to PID {G.device_usbpid}")
+        dev = None
+        if G.device_devpath:
+            try:
+                dev = HapticEffect.open(pid=int(G.device_usbpid, 16),
+                                        path=str(G.device_devpath))
+            except Exception:
+                logging.info("Open by stored device path failed; falling back to PID %s", G.device_usbpid)
             if dev is None:
                 dev = HapticEffect.open(pid=int(G.device_usbpid, 16))
 
@@ -707,9 +679,7 @@ def _configured_device_present() -> bool:
         if not devpath:
             return False
         if devpath.startswith('dinput:'):
-            guid = devpath[len('dinput:'):]
-            from telemffb.hw.ffb_dinput import DInputFFBDevice
-            return any(d.guid == guid for d in DInputFFBDevice.enumerate())
+            return False
         pid = int(str(G.system_settings.get(
             utils.device_pid_key(G.device_type), '') or '2055'), 16)
         return any(d.product_id == pid for d in FFBRhino.enumerate())
@@ -1292,12 +1262,9 @@ def _sim_connected_events():
     # on_first_sim_frame guards against clobbering an error the same frame raised.
     G.telem_manager.first_frame_received.connect(G.main_window.on_first_sim_frame)
     G.telem_manager.first_frame_received.connect(api_server.on_first_frame)
-    G.telem_manager.first_frame_received.connect(dcs_settings.on_first_frame)
     G.telem_manager.sim_exited.connect(lambda src: G.sim_listeners.restart_all())
     G.telem_manager.sim_exited.connect(G.main_window.on_sim_exited)
     G.telem_manager.sim_exited.connect(api_server.on_sim_exited)
-    G.telem_manager.sim_exited.connect(dcs_settings.on_sim_exited)
-    G.telem_manager.aircraftUpdated.connect(dcs_settings.on_aircraft_updated)
 
 def _handle_window_display(headless_mode):
     """Handle initial window display based on configuration."""
@@ -1706,9 +1673,6 @@ def main():
     # Tell the dinput8 tap wrapper which device we are driving.  Published
     # here rather than earlier because it is keyed on the device's USB ids,
     # which are only known once the device is open (see _publish_beacons).
-    _publish_beacons()
-
-
     # ============================================================================
     # PHASE 10: Core Component Initialization
     # ============================================================================
@@ -1770,22 +1734,6 @@ def main():
     # Prompt for system settings if no devices are configured
     _check_system_settings_required()
 
-    # The tap files live in game folders, not per instance, so both offers
-    # are master only.  A game update empties its folders and takes the
-    # wrapper and config with it: offer to put them back first, then offer
-    # to bring whatever survived up to the bundled build.
-    if G.master_instance:
-        try:
-            from telemffb.TapRepairDialog import offer_wrapper_repairs
-            offer_wrapper_repairs(G.main_window)
-        except Exception:
-            logging.exception("DirectInput tap: startup repair offer failed")
-        try:
-            from telemffb.TapUpdateDialog import offer_wrapper_updates
-            offer_wrapper_updates(G.main_window)
-        except Exception:
-            logging.exception("DirectInput tap: startup update offer failed")
-
     # ============================================================================
     # PHASE 14: Background Initialization
     # ============================================================================
@@ -1813,7 +1761,7 @@ def main():
     _cleanup_on_exit(dev_serial)
 
 def _init_logging(log_widget : QPlainTextEdit):
-    log_folder = os.path.join(os.environ['LOCALAPPDATA'], "VPForce-TelemFFB", 'log')
+    log_folder = str(state_dir() / 'log')
 
     # Capture original streams so logging StreamHandlers can write to the
     # real console. We still route stdout/stderr to the UI via OutLog, but

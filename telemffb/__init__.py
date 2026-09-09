@@ -21,3 +21,10 @@
 #from .ButtonPressThread import ButtonPressThread
 #from .LogTailWindow import LogTailWindow
 #from .SystemSettingsDialog import SystemSettingsDialog
+
+# ``typing.override`` was added in Python 3.12.  The project uses it widely,
+# while this Linux fork supports Python 3.11 as documented.
+import typing
+if not hasattr(typing, "override"):
+    from typing_extensions import override
+    typing.override = override

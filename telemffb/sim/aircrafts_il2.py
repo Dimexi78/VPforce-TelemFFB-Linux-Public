@@ -368,7 +368,6 @@ class Aircraft(AircraftBase):
         # self._update_focus_loss(telem_data)
         self.il2_override_spring()
         self.il2_ffb_spring()      # spring mode TELEM: Korea ffbdevice records
-        self.ffb_tap_spring()      # spring mode DINPUT_TAP: dinput8 wrapper tap
         self.il2_ffb_forces()
         if self.damage_effect_intensity > 0:
             self.il2_update_damage(telem_data)

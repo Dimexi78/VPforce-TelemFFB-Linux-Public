@@ -49,6 +49,7 @@ import xml.etree.ElementTree as ET
 
 import numpy as np
 import akima
+from platformdirs import PlatformDirs
 
 from PyQt6.QtCore import QCoreApplication, QSize, QThread, pyqtSignal, QObject, QSettings, Qt, QMetaObject, pyqtSlot
 from PyQt6.QtGui import QGuiApplication, QPixmap, QTextCharFormat, QColor
@@ -1276,6 +1277,7 @@ class SystemSettings(QSettings):
         'il2_fwd_enable': False,
         'il2_fwd_destinations': '[]',
         'enableBMS': False,
+        'portBMS': 34382,
         # opt-in per sim: the tap is a thing most VPforce owners never
         # need, and defaulting it on would imply otherwise
         'enableTapDCS': False,
@@ -1355,7 +1357,9 @@ class SystemSettings(QSettings):
         if path:
             super().__init__(path, QSettings.Format.IniFormat)
         else:
-            super().__init__('VPforce', 'TelemFFB')
+            settings_dir = PlatformDirs("VPForce-TelemFFB", roaming=False).user_config_dir
+            os.makedirs(settings_dir, exist_ok=True)
+            super().__init__(os.path.join(settings_dir, 'settings.ini'), QSettings.Format.IniFormat)
         #self.def_inst_sys_dict, self.def_global_sys_dict = get_default_sys_settings(pid, tp, cmb=False)
         # No additional initialization required. Keep QSettings initialization intact.
         return

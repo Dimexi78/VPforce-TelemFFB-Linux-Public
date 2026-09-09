@@ -35,14 +35,6 @@ from typing import List, Optional, Self, override
 import usb1
 from PyQt6.QtCore import QObject, QTimer, QTimerEvent, pyqtSignal
 
-paths = ["hidapi.dll", "dll/hidapi.dll", os.path.join(os.path.dirname(os.path.abspath(__file__)), 'dll', 'hidapi.dll')]
-for p in paths:
-    try:
-       ctypes.cdll.LoadLibrary(p)
-       break
-    except:
-        pass
-
 import telemffb.hw.ffb_backend as ffb_backend
 import telemffb.hw.hid as hid
 from telemffb.utils import Destroyable, DirectionModulator, clamp, millis
@@ -1518,25 +1510,6 @@ class HapticEffect(Destroyable):
         logging.info(f"Open Rhino HID {vid:04X}:{pid:04X}")
         cls.device = FFBRhino(vid, pid, serial, path)
         logging.info(f"Successfully opened HID '{cls.device.info.path.decode('utf-8')}'")
-
-        return cls.device
-
-    @classmethod
-    def open_dinput(cls, guid: str):
-        """Open a generic DirectInput FFB device (via the DInput bridge DLL)
-        and attach it for all HapticEffect instances.
-
-        Args:
-            guid: The DirectInput instance GUID string of the device.
-
-        Returns:
-            The opened `DInputFFBDevice` instance.
-        """
-        # local import: ffb_dinput imports the effect constants from this module
-        from telemffb.hw.ffb_dinput import DInputFFBDevice
-        logging.info(f"Open DirectInput FFB device {guid}")
-        cls.device = DInputFFBDevice(guid)
-        logging.info(f"Successfully opened '{cls.device.info.product_string}' ({cls.device.info.vidpid()})")
 
         return cls.device
 

@@ -45,7 +45,6 @@ from typing import override
 from telemffb import utils
 from telemffb.hw.ffb_rhino import (EFFECT_SINE, EFFECT_SQUARE, EFFECT_TRIANGLE, EFFECT_SAWTOOTHUP, EFFECT_SAWTOOTHDOWN)
 from telemffb.sim.aircraft_base import AircraftBase
-from telemffb.telem.DcsIpcThread import DcsIpcThread
 from telemffb.SettingsManager import SpringModeEnum
 
 from telemffb.util.conversions import FFB_UNITS, kt2ms, kmh2ms, ms2kmh, deg
@@ -56,8 +55,7 @@ perftracker = utils.PerformanceTracker()
 
 class DCSCommands:
     def dcs_send_commands(self, cmds):
-        cmds = "\n".join(cmds)
-        DcsIpcThread.send_commands(cmds)
+        logging.debug("DCS command injection is unavailable in the Linux UDP backend: %s", cmds)
 
     def dcs_cmd_set_rudder(self, value: float):
         """Sets the rudder position in DCS.  Value is between -1.0 and 1.0
@@ -241,7 +239,6 @@ class Aircraft(AircraftBase, DCSCommands):
         self.dcs_update_damage(telem_data)
         self.dcs_update_stick_shaker(telem_data)
         self.dcs_override_spring()
-        self.ffb_tap_spring()
         self.dcs_override_copilot_spring(telem_data)
         self.dcs_update_ap_deadzone(telem_data)
 

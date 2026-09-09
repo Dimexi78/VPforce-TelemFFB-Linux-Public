@@ -29,7 +29,7 @@ import psutil
 from dataclasses import dataclass
 
 from PyQt6.QtCore import QObject, pyqtSignal
-from typing import Optional, Tuple, TYPE_CHECKING
+from typing import Any, Optional, Tuple, TYPE_CHECKING
 
 import telemffb.globals as G
 import telemffb.utils as utils
@@ -38,11 +38,11 @@ import telemffb.xmlutils as xmlutils
 from telemffb.hw.ffb_rhino import HapticEffect
 from telemffb.sim import aircrafts_dcs, aircrafts_il2, aircrafts_msfs_xp
 from telemffb.sim.BaseTelemetryData import BaseTelemetryData
-from telemffb.telem.SimConnectManager import SimConnectManager
 from telemffb.utils import upload_vpconf_profile
 
 if TYPE_CHECKING:
     from telemffb.sim.aircraft_base import AircraftBase
+    from telemffb.telem.SimConnectManager import SimConnectManager
 
 @dataclass
 class AircraftInfo:
@@ -134,7 +134,7 @@ class TelemManager(QObject, threading.Thread):
         self.max_frame_time = 0
         self.timeout_sec = 0.2
         self._ipc_telem_data = {}
-        self._simconnect : Optional[SimConnectManager] = None
+        self._simconnect: Optional[Any] = None
         self.gain_overrides_active = False
         self.stop_state = False
         self.pause_state = False
@@ -201,11 +201,11 @@ class TelemManager(QObject, threading.Thread):
         self.currentDataSource = None
         self.sim_exited.emit(src)
 
-    def set_simconnect(self, sc : SimConnectManager):
+    def set_simconnect(self, sc: Any):
         self._simconnect = sc
 
     @property
-    def simconnect(self) -> Optional[SimConnectManager]:
+    def simconnect(self) -> Optional[Any]:
         return self._simconnect
 
     def refresh_aircraft_profile(self) -> Optional[str]:

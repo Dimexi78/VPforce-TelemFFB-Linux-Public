@@ -28,7 +28,6 @@ import subprocess
 import sys
 import time
 import traceback
-import winreg
 from collections import OrderedDict
 from datetime import datetime
 from typing import override
@@ -61,7 +60,6 @@ from telemffb.SettingsLayout import SettingsLayout
 # from telemffb.UserModelDialog import UserModelDialog
 from telemffb.NewAircraftWizard import NewAircraftWizard
 from telemffb.telem.SimTelemListener import SimTelemListener
-from telemffb.SystemSettingsDialog import SystemSettingsDialog
 from telemffb.TeleplotSetupDialog import TeleplotSetupDialog
 from telemffb.ProfileManager import ProfileManagerDialog, NewProfileDialog
 from telemffb.utils import exit_application, HiDpiPixmap
@@ -1182,34 +1180,21 @@ class MainWindow(QMainWindow):
             )
 
     def toggle_start_with_windows(self, set_enabled=None):
-        exe_path = sys.executable
-        reg_key_path = r"Software\Microsoft\Windows\CurrentVersion\Run"
-        reg_key_name = "VPforce TelemFFB"
+        """Manage a freedesktop autostart entry instead of a Registry key."""
+        from pathlib import Path
+        from telemffb.paths import config_dir
 
-        try:
-            reg_key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, reg_key_path, 0, winreg.KEY_SET_VALUE | winreg.KEY_READ)
-            if set_enabled is None:
-                #if no state defined, just querey and return state
-                try:
-                    value, _ = winreg.QueryValueEx(reg_key, reg_key_name)
-                    winreg.CloseKey(reg_key)
-                    return True
-                except FileNotFoundError:
-                    return False
-            else:
-                if set_enabled:
-                    winreg.SetValueEx(reg_key, reg_key_name, 0, winreg.REG_SZ, exe_path)
-                else:
-                    try:
-                        winreg.DeleteValue(reg_key, reg_key_name)
-                    except FileNotFoundError:
-                        pass
-                winreg.CloseKey(reg_key)
-        except FileNotFoundError:
-            if set_enabled:
-                reg_key = winreg.CreateKey(winreg.HKEY_CURRENT_USER, reg_key_path)
-                winreg.SetValueEx(reg_key, reg_key_name, 0, winreg.REG_SZ, exe_path)
-                winreg.CloseKey(reg_key)
+        autostart = config_dir().parent / 'autostart' / 'vpforce-telemffb.desktop'
+        if set_enabled is None:
+            return autostart.is_file()
+        if set_enabled:
+            autostart.parent.mkdir(parents=True, exist_ok=True)
+            command = f'"{sys.executable}" "{os.path.abspath(sys.argv[0])}"'
+            autostart.write_text(
+                '[Desktop Entry]\nType=Application\nName=VPforce TelemFFB\n'
+                f'Exec={command}\nX-GNOME-Autostart-enabled=true\n', encoding='utf-8')
+        elif autostart.exists():
+            autostart.unlink()
 
     def add_instance_log_menu(self):
         self.log_menu.addAction(self.log_window_action)
@@ -2169,6 +2154,7 @@ class MainWindow(QMainWindow):
 
     def open_system_settings_dialog(self):
         try:
+            from telemffb.SystemSettingsDialog import SystemSettingsDialog
             dialog = SystemSettingsDialog(self)
             dialog.raise_()
             dialog.activateWindow()

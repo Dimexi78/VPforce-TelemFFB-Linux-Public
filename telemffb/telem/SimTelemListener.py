@@ -28,10 +28,6 @@ import telemffb.utils as utils
 from telemffb.telem.IL2Manager import IL2TelemParser
 from telemffb.telem.NetworkThread import NetworkThread
 from telemffb.telem.UDPForwarder import IL2PacketForwarder
-from telemffb.telem.SharedMemThread import SharedMemThread
-from telemffb.telem.SimConnectSock import SimConnectSock
-from telemffb.telem.DcsIpcThread import DcsIpcThread
-from telemffb.telem.BMSTelemManager import BMSManager
 
 
 class SimTelemListener(QtCore.QObject):
@@ -75,13 +71,6 @@ class SimTelemListener(QtCore.QObject):
 
     @property
     def is_enabled(self) -> bool:
-        # No sim is gated for DirectInput devices: sims that render their
-        # own native FFB (DCS/IL-2/BMS) work on a DI device with the
-        # tap/sink dinput8 wrapper in the game folder (native FFB absorbed;
-        # tap mode mirrors the game spring for the 'FFB Telemetry (Game
-        # Managed)' spring mode).  Without the wrapper, the game taking
-        # foreground FFB priority surfaces as an actionable error in the
-        # exception tracker (see ffb_dinput's DIB_ERR_ACQUISITION handling).
         return bool(G.system_settings.get(f'enable{self.name}') or G.args.sim == self.name)
 
     @property
@@ -162,8 +151,12 @@ class SimBMS(SimTelemListener):
     def start(self):
         if not self.is_enabled:
             return
-        self.telem = SharedMemThread(G.telem_manager, telem_parser=BMSManager())
-        logging.info("Starting BMS Telemetry Listener")
+        # Falcon BMS runs in Wine/Proton.  Its Win32 shared-memory mappings
+        # are not visible to this native process, so a Windows-side exporter
+        # must forward TelemFFB's normal semicolon-delimited frames over UDP.
+        self.telem = NetworkThread(G.telem_manager, host="127.0.0.1",
+                                   port=self.port_udp)
+        logging.info("Starting BMS UDP telemetry listener on port %s", self.port_udp)
         self.telem.start()
         self.started = True
 
@@ -183,40 +176,24 @@ class SimBMS(SimTelemListener):
 class SimDCS(SimTelemListener):
     def __init__(self) -> None:
         super().__init__("DCS")
-        self.telem_ipc : Optional[DcsIpcThread] = None
-        self.telem_udp : Optional[NetworkThread] = None # deprecated
+        self.telem_udp: Optional[NetworkThread] = None
 
     @override
     def start(self):
         if not self.is_enabled:
             return
 
-        self.telem_udp = NetworkThread(G.telem_manager, host="127.0.0.1", port=34380)
-        self.telem_ipc = DcsIpcThread(G.telem_manager)
-
-        self.do_validate()
-
-        if self.telem_ipc is None or self.telem_udp is None:  # stopped during validation (e.g. another sim won the race)
+        self.telem_udp = NetworkThread(G.telem_manager, host="0.0.0.0", port=34380)
+        if self.telem_udp is None:
             return
 
         logging.info("Starting DCS Telemetry Listener")
-        self.telem_ipc.start()
         self.telem_udp.start()
         self.started = True
 
     @override
     def validate(self):
-        # check and install/update export lua script
-        logging.info("Checking DCS export script")
-        if G.system_settings.get('dbg_use_dll') is None:
-            G.system_settings.setValue('dbg_use_dll', True)
-
-        use_dll = G.system_settings.get('dbg_use_dll', False)
-
-        if use_dll:
-            utils.install_dcs_export_module_dll(G.main_window)
-        else:
-            utils.install_dcs_export_module_lua(G.main_window)
+        logging.info("DCS exporter installation is manual on Linux; listening for UDP telemetry")
 
     @override
     def stop(self):
@@ -224,10 +201,7 @@ class SimDCS(SimTelemListener):
         if self.telem_udp:
             self.telem_udp.quit()
             self.telem_udp = None
-        if self.telem_ipc:
-            self.telem_ipc.quit()
-            self.telem_ipc = None
-            self.started = False
+        self.started = False
 
 class SimXPLANE(SimTelemListener):
     def __init__(self) -> None:
@@ -268,25 +242,19 @@ class SimXPLANE(SimTelemListener):
 class SimMSFS(SimTelemListener):
     def __init__(self) -> None:
         super().__init__("MSFS")
-        self.telem : Optional[SimConnectSock] = None
+        self.telem = None
 
     @override
     def start(self):
         if not self.is_enabled:
             return
 
-        self.telem = SimConnectSock(G.telem_manager)
-
-        self.telem.start()
-        self.started = True
+        logging.warning("MSFS SimConnect is not included in the Linux-only build")
 
     @override
     def stop(self):
         logging.info("Stopping MSFS Telemetry Listener")
-        if self.telem:
-            self.telem.quit()
-            self.telem = None
-            self.started = False
+        self.started = False
     
     @override
     def validate(self):
