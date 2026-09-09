@@ -7,7 +7,7 @@ on:
 
 jobs:
   pytest:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
@@ -20,8 +20,10 @@ jobs:
 
       - name: Install dependencies
         run: |
+          sudo apt-get update
+          sudo apt-get install --yes libhidapi-dev libhidapi-hidraw0 libusb-1.0-0
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
+          python -m pip install -r requirements.txt
 
       # A native death (a PyQt qFatal, an access violation) ends the
       # run with no test failure and no traceback.  The step shell
@@ -29,12 +31,8 @@ jobs:
       # and run unbuffered, or the last printed test name is only the
       # last flushed one, not where the process actually died.
       - name: Run pytest
-        shell: pwsh
         run: |
           pytest
-          $code = $LASTEXITCODE
-          Write-Host ("pytest exit code: {0} (0x{1:X8})" -f $code, ($code -band 0xFFFFFFFF))
-          exit $code
         env:
           PYTHONFAULTHANDLER: "1"
           PYTHONUNBUFFERED: "1"
