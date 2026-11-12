@@ -94,6 +94,29 @@ and sends it to TelemFFB over UDP on `127.0.0.1:34382`.
    should detect BMS and show telemetry and active effects. Stop the forwarder
    with Ctrl+C when finished.
 
+### One-command BMS startup
+
+After completing the setup above, start TelemFFB and the forwarder together:
+
+```bash
+cd ~/VPforce-TelemFFB-Linux
+WINEPREFIX="$HOME/.wine" ./scripts/start-bms-telemffb.sh
+```
+
+To also start BMS, pass the path of your existing executable BMS launcher
+script. For example:
+
+```bash
+WINEPREFIX="$HOME/.wine" ./scripts/start-bms-telemffb.sh --bms-launcher "$HOME/bin/start-bms.sh"
+```
+
+Use the same Wine prefix in the forwarder and the BMS launcher; check the
+launcher script if it sets its own `WINEPREFIX`. Keep the terminal open to see
+diagnostics. Closing TelemFFB stops the forwarder; BMS remains open and can be
+closed normally. Use `--port 34382` to specify the UDP port if needed: it must
+match the BMS UDP port configured in TelemFFB. This script does not install
+dependencies or change the BMS launcher.
+
 If the application stays at **Waiting**, check the forwarder's terminal for
 `Connected to BMS shared memory`, verify both processes use the same Wine
 prefix, and run `ss -lunp | grep 34382` to check the native listener. Recheck
