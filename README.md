@@ -11,10 +11,14 @@ Feedback and test reports from other setups are welcome.
 
 ## Arch Linux / Omarchy setup
 
+These instructions target Arch Linux / Omarchy. Other distributions need equivalent
+packages; they have not been tested. For BMS, install Wine and verify that BMS
+runs in its Wine prefix before starting.
+
 Install the native dependencies and clone the repository:
 
 ```bash
-sudo pacman -S --needed git python python-pyqt6 hidapi libusb
+sudo pacman -S --needed git python python-pyqt6 hidapi libusb usbutils
 git clone https://github.com/Dimexi78/VPforce-TelemFFB-Linux-Public.git VPforce-TelemFFB-Linux
 cd VPforce-TelemFFB-Linux
 python -m venv .venv
@@ -167,76 +171,21 @@ TelemFFB is an open source, community-driven Python/Qt application that reads te
 
 > **Full documentation:** https://docs.vpforce.eu/telemffb/
 
-## Supported Simulators
+## Simulator and device support
 
-- **DCS World** — native FFB sim; TelemFFB adds supplemental haptic effects on top
-- **Microsoft Flight Simulator (2020/2024)** — no native FFB; TelemFFB implements full dynamic FFB
-- **X-Plane 11/12** — no native FFB; TelemFFB implements full dynamic FFB via an auto-installed plugin
-- **IL-2 Sturmovik** — native FFB sim; TelemFFB adds supplemental haptic effects on top
-- **Falcon BMS 4.38+** *(beta)* — limited native effects; TelemFFB adds haptic effects
+- **Falcon BMS 4.38:** telemetry and engine effects tested on Omarchy with a
+  VPforce Rhino and BMS running under Wine. Other aircraft and effects need
+  wider testing.
+- **DCS World:** a UDP telemetry path is included, but it has not yet been
+  tested in this Linux port. The DCS setup above is preliminary.
+- **Other simulators:** this fork is not yet validated for them. Windows-only
+  SimConnect and DirectInput integrations are disabled in the Linux build;
+  do not assume the upstream Windows documentation applies here.
+- **Devices:** the tested device is a VPforce Rhino. DIY VPforce hardware,
+  other product IDs, and multi-device setups need further testing.
 
-For sims **with** native FFB (DCS, IL-2, BMS), TelemFFB primarily adds supplemental effects like engine rumble, gunfire, and helicopter ETL shaking while the sim manages the spring/trim system.
-
-For sims **without** native FFB (MSFS, X-Plane), TelemFFB handles the **entire** FFB implementation, including dynamic spring forces based on calculated aerodynamic pressure throughout the aircraft's speed envelope.
-
-## Legacy Windows quick start
-
-Download the latest release, extract the zip, and run the exe — no installer needed.
-
-- **Stable releases:** https://github.com/walmis/VPforce-TelemFFB/releases
-- **Development builds** (auto-updated): https://vpforcecontrols.com/downloads/TelemFFB/?C=M;O=D
-
-On first launch, you'll be guided through the system settings to configure your simulator(s) and device(s). See the [documentation](https://docs.vpforce.eu/telemffb/) for full setup details.
-
-## Features
-
-Not all features are available in all simulators.
-
-**Haptic / Supplemental Effects**
-- Engine rumble — piston, jet, and helicopter, including afterburner
-- Angle of attack and stall buffeting
-- Turbulence (dynamic, wind-data-driven gust simulation)
-- Weapon release and countermeasure release effects
-- Gunfire vibration
-- Ground roll and touchdown effects
-- Runway rumble and nosewheel shimmy
-- Gear, flap, spoiler, speedbrake, and canopy motion effects
-- Buffeting from deployed gear and spoilers
-- Helicopter ETL (effective translational lift) effect
-- Helicopter VRS (vortex ring state) effect
-- Helicopter overspeed shaking
-- Damage effect
-- Uncoordinated turn effect
-
-**Flight Control Forces (MSFS / X-Plane)**
-- Dynamic spring force based on aerodynamic pressure across the aircraft's speed envelope
-- Fly-By-Wire (FBW) static spring mode
-- Spring-centered dynamic mode (minimum spring floor + dynamic forces)
-- Advanced spring curve editor — custom per-axis gain mapping over a configurable airspeed range
-- G-force effect with exponential or custom-curve configuration
-- Deceleration effect (forward force when braking)
-- Trim following
-- Autopilot following (fixed-wing)
-- Helicopter force trim emulation with trim-release button support
-- Low hydraulic pressure effect (increased damper/friction/inertia on hyd loss)
-
-**Special Implementations**
-- HPG Airbus H145 / H160 (MSFS): Full AFCS integration — collective and cyclic follow the autopilot, force trim release, hands-on detection
-- FlyInside helicopters (MSFS): Vibration-model integration
-- FFB rudder pedals: Dynamic/fixed/unsprung spring modes, nose-wheel shimmy, trim following, autopilot following
-- FFB collective: Configurable damper/friction/inertia, haptic effects playback, HPG AFCS integration
-
-## Supported Devices
-
-TelemFFB supports VPforce FFB devices:
-
-- **VPforce Rhino** joystick base
-- **DIY joystick bases** using VPforce motor kits
-- **DIY FFB rudder pedals** using VPforce kits
-- **DIY FFB collective** using VPforce kits
-- **DIY FFB trim wheel** using VPforce kits (MSFS only)
-
-Multiple devices can be run simultaneously. TelemFFB will auto-launch child instances for each additional device, all managed from a single master window.
+The upstream project's documentation describes additional features and
+simulators; their presence upstream does not mean they work in this Linux fork.
 
 ## Configuration
 
@@ -248,42 +197,16 @@ Settings can be modified in real time from the Settings tab while flying. Change
 
 Aircraft profiles can be created, cloned, exported, and imported via the Profile Manager. Multiple profiles per aircraft are supported.
 
-## Antivirus / False Positives
+## Updating
 
-TelemFFB is packaged with PyInstaller, which can trigger false positives in Windows Defender and other antivirus tools. The application is safe — all source code is publicly auditable and dependencies are standard PyPI packages. If flagged, allow the app manually or submit it to your AV vendor for review.
-
-## Installing and Running from Source
-
-**Requirements:**
-- Python 3.11+
-- Git
-
-**Steps:**
-
-```bash
-python -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-python main.py
-```
-
-For DCS under Proton, install the Lua exporter manually as described in the
-Arch Linux section.
-
-**Updating from source:**
-```bash
-git pull
-```
-
-If local changes conflict:
-```bash
-git reset --hard origin/master
-git pull
-```
+From the repository directory, use `git pull --ff-only` to update a clean
+checkout. If Git reports local changes or a conflict, review or save those
+changes before updating.
 
 ## Contributing and Development
 
-Pull requests and issues are welcome on the [GitHub page](https://github.com/walmis/VPforce-TelemFFB).
+Linux-specific test reports and contributions are welcome in this repository.
+The upstream project is [VPforce TelemFFB](https://github.com/walmis/VPforce-TelemFFB).
 
 The effects framework is designed to make it straightforward to add or customize aircraft-specific behavior. Per-aircraft logic lives in the `aircrafts_dcs.py`, `aircrafts_msfs.py`, and similar files. Effect lifecycles are managed automatically through the `effects[]` object. For example, adding a bump effect when a gun round is fired:
 
