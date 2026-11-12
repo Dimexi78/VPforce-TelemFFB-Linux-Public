@@ -82,6 +82,7 @@ from telemffb.utils import (AnsiColors, LoggingFilter, exit_application,
                             upload_vpconf_profile)
 from telemffb.namedmutex import NamedMutex
 from telemffb.paths import config_dir, state_dir
+from telemffb.shutdown_signal import install_shutdown_handler
 import telemffb.api_server as api_server
 import styles
 resources # used
@@ -1523,6 +1524,7 @@ def main():
 
     # Initialize Qt application with Fusion style for consistent cross-platform appearance
     app = QApplication(sys.argv)
+    shutdown_timer = install_shutdown_handler(app)
     app.setStyle('fusion')  # Set Fusion style
     app.setFont(QFont('Segoe UI', 10))
 

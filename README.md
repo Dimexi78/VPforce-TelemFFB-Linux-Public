@@ -110,6 +110,32 @@ script. For example:
 WINEPREFIX="$HOME/.wine" ./scripts/start-bms-telemffb.sh --bms-launcher "$HOME/bin/start-bms.sh"
 ```
 
+To shut down TelemFFB and the forwarder when BMS exits, add
+`--exit-with-bms`:
+
+```bash
+WINEPREFIX="$HOME/.wine" ./scripts/start-bms-telemffb.sh --bms-launcher "$HOME/bin/start-bms.sh" --exit-with-bms
+```
+
+This requires a BMS launcher script that stays running for the entire BMS
+session and exits when the simulator closes. A launcher that only starts BMS
+and immediately exits cannot be used with `--exit-with-bms`. TelemFFB shuts
+down through its normal cleanup so its active effects are released.
+
+For an Omarchy Super+Space menu entry named `games.falcon-bms` that currently
+launches `~/bin/start-bms.sh` and uses `~/.wine`, the following optional setup
+connects that existing entry to the combined launcher:
+
+```bash
+python scripts/install-omarchy-bms-menu.py
+```
+
+The installer checks the existing entry, creates
+`~/bin/start-bms-telemffb.sh`, and saves a backup of the menu file before
+updating it. The existing `start-bms.sh` must remain running until BMS exits.
+The wrapper logs to `~/.local/state/VPForce-TelemFFB/bms-launcher.log`. If the
+menu or Wine setup differs, use the manual command above instead.
+
 Use the same Wine prefix in the forwarder and the BMS launcher; check the
 launcher script if it sets its own `WINEPREFIX`. Keep the terminal open to see
 diagnostics. Closing TelemFFB stops the forwarder; BMS remains open and can be

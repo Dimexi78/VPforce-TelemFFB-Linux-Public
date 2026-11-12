@@ -4,15 +4,17 @@ set -u
 
 usage() {
     cat <<'USAGE'
-Usage: start-bms-telemffb.sh [--bms-launcher /path/to/start-bms.sh] [--port PORT]
+Usage: start-bms-telemffb.sh [--bms-launcher /path/to/start-bms.sh] [--exit-with-bms] [--port PORT]
 
 Set WINEPREFIX to the prefix used by BMS (default: ~/.wine).
 The optional launcher is started separately; closing TelemFFB does not close BMS.
+With --exit-with-bms, the launcher must stay running until BMS exits.
 USAGE
 }
 
 launcher=
 port=34382
+exit_with_bms=false
 while (($#)); do
     case "$1" in
         --bms-launcher|--port)
@@ -24,9 +26,14 @@ while (($#)); do
             shift 2
             ;;
         -h|--help) usage; exit 0 ;;
+        --exit-with-bms) exit_with_bms=true; shift ;;
         *) echo "Unknown option: $1" >&2; usage >&2; exit 2 ;;
     esac
 done
+if [[ $exit_with_bms == true && -z $launcher ]]; then
+    echo "--exit-with-bms requires --bms-launcher." >&2
+    exit 2
+fi
 if [[ ! $port =~ ^[0-9]{1,5}$ ]] || ((10#$port < 1 || 10#$port > 65535)); then
     echo "Port must be between 1 and 65535." >&2
     exit 2
@@ -70,9 +77,22 @@ app_pid=$!
 if [[ -n $launcher ]]; then
     echo "Starting BMS: $launcher"
     "$launcher" &
+    launcher_pid=$!
 fi
-wait "$app_pid"
-status=$?
+if [[ $exit_with_bms == true ]]; then
+    finished=
+    wait -n -p finished "$app_pid" "$launcher_pid"
+    status=$?
+    if [[ $finished == "$launcher_pid" ]]; then
+        echo "BMS launcher exited; stopping TelemFFB."
+        kill -TERM "$app_pid" 2>/dev/null || true
+        wait "$app_pid" 2>/dev/null || true
+        exit "$status"
+    fi
+else
+    wait "$app_pid"
+    status=$?
+fi
 if ((status != 0)); then
     echo "TelemFFB exited with status $status." >&2
 fi
