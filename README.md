@@ -4,20 +4,24 @@ This fork runs TelemFFB natively on Linux and targets Arch Linux / Omarchy,
 Wayland, and VPforce Rhino/DIY HID hardware. Falcon BMS runs in Wine and uses
 an additional Wine-side telemetry forwarder.
 
+This is an experimental Linux port of [VPforce TelemFFB](https://github.com/walmis/VPforce-TelemFFB).
+Falcon BMS 4.38 telemetry and effects were tested with a Rhino on Omarchy.
+DCS support is included but has not yet been tested in this Linux port.
+Feedback and test reports from other setups are welcome.
+
 ## Arch Linux / Omarchy setup
 
 Install the native dependencies and clone the repository:
 
 ```bash
 sudo pacman -S --needed git python python-pyqt6 hidapi libusb
-git clone https://github.com/Dimexi78/VPforce-TelemFFB-Linux.git
+git clone https://github.com/Dimexi78/VPforce-TelemFFB-Linux-Public.git VPforce-TelemFFB-Linux
 cd VPforce-TelemFFB-Linux
 python -m venv .venv
 .venv/bin/python -m pip install -r requirements.txt
 ```
 
-Access to this private repository requires GitHub authentication. On Python
-3.14 the requirements select a newer NumPy, because the pinned 2.3.0 release
+On Python 3.14 the requirements select a newer NumPy, because the pinned 2.3.0 release
 has no Python 3.14 wheel. The system Python and Wine Python environments are
 separate; installing packages in one does not install them in the other.
 
@@ -151,6 +155,8 @@ the BMS enable setting and restart TelemFFB if no listener is present. Wine
 force-feedback controls during the first effect test.
 
 ### DCS telemetry
+
+**Status:** not yet tested in this Linux port.
 
 DCS's included Lua exporter sends UDP telemetry. Put `export/TelemFFB.lua` in
 the DCS Saved Games export chain inside the Wine/Proton prefix and enable DCS
