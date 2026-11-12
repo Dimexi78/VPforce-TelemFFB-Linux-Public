@@ -45,7 +45,7 @@ import time
 from typing import Optional, Dict, Any, List
 
 from .BMSSharedMem import BMSSharedMemory, FlightData, FlightData2, IVibeData, LightBits, LightBits2, LightBits3, HsiBits
-from .TelemParserBase import TelemParserBase
+from telemffb.telem.TelemParserBase import TelemParserBase
 import telemffb.globals as G
 import telemffb.utils as utils
 from telemffb.util import conversions as conv

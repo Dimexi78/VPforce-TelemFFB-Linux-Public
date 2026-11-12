@@ -54,7 +54,6 @@ from telemffb.custom_widgets import ClickLogo, InstanceStatusRow, NoKeyScrollAre
 from telemffb.DevicePanel import DeviceIconPanel, device_status_state
 from telemffb.ExceptionTracker import ExceptionViewerDialog
 from telemffb.hw.ffb_rhino import HapticEffect
-from telemffb.SCOverridesEditor import SCOverridesEditor
 from telemffb.ProfileNotesDialog import ProfileNotesDialog
 from telemffb.SettingsLayout import SettingsLayout
 # from telemffb.UserModelDialog import UserModelDialog
@@ -296,8 +295,11 @@ class MainWindow(QMainWindow):
         utilities_menu.addAction(reload_action)
 
         sc_overrides_action = QAction('SimConnect/Dataref Overrides Editor', self)
+        sc_overrides_action.setEnabled(False)
+        sc_overrides_action.setToolTip('SimConnect is not available in the Linux build')
 
         def do_open_sc_override_dialog():
+            from telemffb.SCOverridesEditor import SCOverridesEditor
             dialog = SCOverridesEditor(self)
             # Overrides save immediately in the editor; refresh the status
             # pill once the dialog closes so it reflects any changes.
@@ -1428,7 +1430,10 @@ class MainWindow(QMainWindow):
         debug_menu.addAction(configurator_settings_action)
 
         sc_overrides_action = QAction('SimConnect/Dataref Overrides Editor', self)
+        sc_overrides_action.setEnabled(False)
+        sc_overrides_action.setToolTip('SimConnect is not available in the Linux build')
         def do_open_sc_override_dialog():
+            from telemffb.SCOverridesEditor import SCOverridesEditor
             dialog = SCOverridesEditor(self)
             # Overrides save immediately in the editor; refresh the status
             # pill once the dialog closes so it reflects any changes.

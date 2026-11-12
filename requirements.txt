@@ -5,7 +5,8 @@ configobj
 psutil
 stransi
 libusb1
-numpy==2.3.0
+numpy==2.3.0; python_version < '3.14'
+numpy>=2.3.4; python_version >= '3.14'
 akima
 bottle
 stackprinter
