@@ -1,64 +1,112 @@
 # VPforce TelemFFB
 
-> This fork is Linux-only, targeting Arch Linux / Omarchy, Wayland, and
-> VPforce Rhino/DIY HID hardware. It deliberately contains no Wine,
-> DirectInput, Registry, or Windows shared-memory runtime path.
+This fork runs TelemFFB natively on Linux and targets Arch Linux / Omarchy,
+Wayland, and VPforce Rhino/DIY HID hardware. Falcon BMS runs in Wine and uses
+an additional Wine-side telemetry forwarder.
 
-## Arch Linux / Omarchy quick start
+## Arch Linux / Omarchy setup
+
+Install the native dependencies and clone the repository:
 
 ```bash
 sudo pacman -S --needed git python python-pyqt6 hidapi libusb
-git clone <this-fork-url> VPforce-TelemFFB
-cd VPforce-TelemFFB
+git clone https://github.com/Dimexi78/VPforce-TelemFFB-Linux.git
+cd VPforce-TelemFFB-Linux
 python -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-python main.py
+.venv/bin/python -m pip install -r requirements.txt
 ```
 
-Qt 6 uses Wayland automatically under Hyprland. If a local Qt setup prefers
-X11, launch with `QT_QPA_PLATFORM=wayland python main.py`.
+Access to this private repository requires GitHub authentication. On Python
+3.14 the requirements select a newer NumPy, because the pinned 2.3.0 release
+has no Python 3.14 wheel. The system Python and Wine Python environments are
+separate; installing packages in one does not install them in the other.
 
-The default Rhino USB id in this source tree is `ffff:2055`. Install the
-included udev rule, unplug/replug the device, then verify it is accessible as
-your normal user:
+### Rhino USB access
+
+Install the included rule before systemd's seat access rule, then unplug and
+reconnect the Rhino:
 
 ```bash
-sudo install -Dm644 udev/99-vpforce-telemffb.rules /etc/udev/rules.d/99-vpforce-telemffb.rules
+sudo install -Dm644 udev/70-vpforce-telemffb.rules /etc/udev/rules.d/70-vpforce-telemffb.rules
 sudo udevadm control --reload-rules
-sudo udevadm trigger
-lsusb -d ffff:2055
 ```
 
-DIY firmware with a different product ID must use that exact id in a second
-udev-rule line. Do not run TelemFFB as root.
+The stock Rhino USB ID is `ffff:2055`. Verify detection with
+`lsusb -d ffff:2055`. The rule grants the active local desktop user access
+through `uaccess`; it does not change the permissions shown by `ls -l` alone
+when an ACL is used. DIY firmware with another product ID needs a matching
+rule. Do not run TelemFFB as root.
 
-Configuration is stored in `~/.config/VPForce-TelemFFB/`, application data in
+Start the native application from the repository:
+
+```bash
+.venv/bin/python main.py
+```
+
+Qt normally selects Wayland automatically under Hyprland. Configuration is
+stored in `~/.config/VPForce-TelemFFB/`, application data in
 `~/.local/share/VPForce-TelemFFB/`, and logs/state in
 `~/.local/state/VPForce-TelemFFB/`.
 
-### Proton telemetry
+### Falcon BMS with Wine
 
-DCS's included Lua exporter already sends OS-independent UDP telemetry. Put
-`export/TelemFFB.lua` in the DCS Saved Games export chain inside the Wine/Proton
-prefix and enable DCS in TelemFFB; the native application listens on UDP 34380.
-The game and TelemFFB do not need to share a Wine prefix.
+Tested with Falcon BMS 4.38, a Wine prefix, and a Rhino on Omarchy. BMS uses
+Win32 shared memory, which the native Linux process cannot read directly. A
+Windows Python process in **the same Wine prefix as BMS** reads the telemetry
+and sends it to TelemFFB over UDP on `127.0.0.1:34382`.
 
-Falcon BMS's original integration was a Win32 named shared-memory reader, so it
-cannot cross from Wine into this native process. This fork listens on UDP 34382
-when BMS is enabled. The included Wine-side forwarder sends the existing
-TelemFFB semicolon-delimited frame format to `127.0.0.1:34382`; run it from
-the Falcon BMS Wine prefix:
+1. Find the prefix used to launch BMS. For example, if its launch script sets
+   `WINEPREFIX="$HOME/.wine"`, use that value in the commands below. Replace it
+   with your own prefix if different. BMS must already work in that prefix.
+2. Install Windows Python 3.12 into that prefix using the official
+   [Python for Windows installer](https://www.python.org/downloads/windows/).
+   Select **Add python.exe to PATH** during installation. Verify it in a new
+   terminal:
 
-```bash
-cd /path/to/VPforce-TelemFFB
-wine python.exe wine/bms_udp_forwarder.py --host 127.0.0.1 --port 34382
-```
+   ```bash
+   WINEPREFIX="$HOME/.wine" wine python.exe --version
+   ```
 
-The Wine Python environment must contain this checkout's runtime dependencies.
-Start the forwarder before launching BMS, then enable BMS in the native
-TelemFFB settings. It reuses the upstream BMS shared-memory parser unchanged
-and forwards its already-normalized UDP frame bytes.
+3. Install the Wine-side dependencies from the repository. This uses Windows
+   Python and does not modify the Linux virtual environment:
+
+   ```bash
+   cd ~/VPforce-TelemFFB-Linux
+   WINEPREFIX="$HOME/.wine" wine python.exe -m pip install -r requirements.txt
+   ```
+
+4. Start TelemFFB with `.venv/bin/python main.py`. Under **System → System
+   Settings**, enable **Falcon BMS UDP**, select the Rhino, leave the default
+   port `34382`, and save. Restart TelemFFB after changing these settings so
+   the listener starts with the new configuration.
+5. In a second terminal, start the forwarder from the repository root. The
+   module form ensures the repository is on Python's import path:
+
+   ```bash
+   cd ~/VPforce-TelemFFB-Linux
+   WINEPREFIX="$HOME/.wine" wine python.exe -m wine.bms_udp_forwarder
+   ```
+
+   Keep the terminal open. Before BMS starts, a message that shared memory
+   could not be found is expected; the forwarder retries. Use `--port` if you
+   configured a different port in TelemFFB.
+6. Launch BMS normally, enter the cockpit and start the engine. TelemFFB
+   should detect BMS and show telemetry and active effects. Stop the forwarder
+   with Ctrl+C when finished.
+
+If the application stays at **Waiting**, check the forwarder's terminal for
+`Connected to BMS shared memory`, verify both processes use the same Wine
+prefix, and run `ss -lunp | grep 34382` to check the native listener. Recheck
+the BMS enable setting and restart TelemFFB if no listener is present. Wine
+`fixme` messages alone do not necessarily indicate a failure. Keep hold of
+force-feedback controls during the first effect test.
+
+### DCS telemetry
+
+DCS's included Lua exporter sends UDP telemetry. Put `export/TelemFFB.lua` in
+the DCS Saved Games export chain inside the Wine/Proton prefix and enable DCS
+in TelemFFB; the native application listens on UDP 34380. The game and
+TelemFFB do not need to share a Wine prefix.
 
 TelemFFB is an open source, community-driven Python/Qt application that reads telemetry from a flight simulator and uses it to generate force feedback (FFB) effects. The goal is to make your stick more lively and increase immersion — not necessarily perfect realism.
 

@@ -1,3 +1,4 @@
+# Run before systemd's 73-seat-late.rules so uaccess is applied.
 # VPforce Rhino default USB identity. The stock firmware uses FFFF:2055.
 # Add another line with the detected idProduct for a DIY firmware that differs.
 SUBSYSTEM=="hidraw", ATTRS{idVendor}=="ffff", ATTRS{idProduct}=="2055", TAG+="uaccess"
